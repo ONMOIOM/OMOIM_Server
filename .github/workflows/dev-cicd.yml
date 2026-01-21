@@ -63,4 +63,5 @@ jobs:
             docker rm app-dev || true
             docker run -d --name app-dev \
               -p 8080:8080 \
+              -e SPRING_PROFILES_ACTIVE=dev \
               ${{ secrets.DOCKER_USERNAME }}/onmoim:develop
