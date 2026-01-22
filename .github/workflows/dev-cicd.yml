@@ -81,4 +81,3 @@ jobs:
             작업: ${{ github.workflow }}
             작성자: ${{ github.actor }}
             [로그 확인하기](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
-            실패 Job: ${{ job.status }} (${{ job.id }})
