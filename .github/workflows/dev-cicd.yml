@@ -63,4 +63,21 @@ jobs:
             docker rm app-dev || true
             docker run -d --name app-dev \
               -p 8080:8080 \
+              -e SPRING_PROFILES_ACTIVE=dev \
+              -e DEV_DB_URL=${{ secrets.DEV_DB_URL }} \
+              -e DEV_DB_USER=${{ secrets.DEV_DB_USER }} \
+              -e DEV_DB_PW=${{ secrets.DEV_DB_PW }} \
+              -e DEV_URL=${{ secrets.DEV_URL }} \
               ${{ secrets.DOCKER_USERNAME }}/onmoim:develop
+
+      - name: Send Discord Notification on Failure
+        if: failure()
+        uses: sarisia/actions-status-discord@v1
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          status: ${{ job.status }}
+          title: "CI/CD 빌드 실패"
+          description: |
+            작업: ${{ github.workflow }}
+            작성자: ${{ github.actor }}
+            [로그 확인하기](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
