@@ -65,3 +65,16 @@ jobs:
               -p 8080:8080 \
               -e SPRING_PROFILES_ACTIVE=dev \
               ${{ secrets.DOCKER_USERNAME }}/onmoim:develop
+
+      - name: Send Discord Notification on Failure
+        if: failure()
+        uses: sarisia/actions-status-discord@v1
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          status: ${{ job.status }}
+          title: "CI/CD 빌드 실패"
+          description: |
+            작업: ${{ github.workflow }}
+            작성자: ${{ github.actor }}
+            [로그 확인하기](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            실패 Job: ${{ job.status }} (${{ job.id }})
