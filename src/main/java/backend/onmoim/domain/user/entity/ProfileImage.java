@@ -1,4 +1,4 @@
-package backend.onmoim.domain.member.entity;
+package backend.onmoim.domain.user.entity;
 
 import backend.onmoim.global.entity.BaseEntity;
 import jakarta.persistence.*;
@@ -21,6 +21,6 @@ public class ProfileImage extends BaseEntity {
     private String imageUrl;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id", insertable = false, updatable = false)
-    private Member member;
+    @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    private User user;
 }

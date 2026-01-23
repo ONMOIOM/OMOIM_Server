@@ -1,22 +1,24 @@
-package backend.onmoim.domain.member.entity;
+package backend.onmoim.domain.user.entity;
 
 
-import backend.onmoim.domain.member.enums.Status;
+import backend.onmoim.domain.user.enums.Status;
 import backend.onmoim.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Builder
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-public class Member extends BaseEntity {
+@Getter
+public class User extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "member_id", unique = true, nullable = false)
+    @Column(name = "user_id", unique = true, nullable = false)
     private Long id;
 
     @Column(name = "name", nullable = false, length = 50)
@@ -45,6 +47,6 @@ public class Member extends BaseEntity {
     private String linkedinId;
 
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, optional = true)
-    @JoinColumn(name = "member_id")
+    @JoinColumn(name = "user_id")
     private ProfileImage profileImage;
 }
