@@ -4,6 +4,7 @@ import backend.onmoim.domain.user.entity.User;
 import backend.onmoim.domain.user.repository.UserQueryRepository;
 import backend.onmoim.global.common.ApiResponse;
 import backend.onmoim.global.common.code.GeneralErrorCode;
+import backend.onmoim.global.common.exception.GeneralException;
 import backend.onmoim.global.utils.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
@@ -45,16 +46,17 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
             if (jwtUtil.isValid(token)) {
                 // JWT에서 id 추출
-                Long id = jwtUtil.getId(token);  // JwtUtil 수정 필요
+                Long id = jwtUtil.getId(token);
 
                 // DB에서 User 직접 조회
                 User user = userQueryRepository.findById(id)
-                        .orElseThrow(() -> new RuntimeException("User not found"));
+                        .orElseThrow(() -> new GeneralException(GeneralErrorCode.MEMBER_NOT_FOUND));
 
                 // SecurityContext에 User 객체 직접 설정
                 Authentication auth = new UsernamePasswordAuthenticationToken(
-                        user,  // principal에 User 객체 직접!
-                        null
+                        user,
+                        null,
+                        new ArrayList<>()
                 );
                 SecurityContextHolder.getContext().setAuthentication(auth);
             }

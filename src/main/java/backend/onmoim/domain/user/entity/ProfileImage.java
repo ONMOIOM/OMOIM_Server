@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
+@Table(name = "profile_image")
 public class ProfileImage extends BaseEntity {
 
     @Id

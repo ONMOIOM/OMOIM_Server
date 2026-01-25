@@ -1,6 +1,8 @@
 package backend.onmoim.global.utils;
 
 import backend.onmoim.domain.user.entity.User;
+import backend.onmoim.global.common.code.GeneralErrorCode;
+import backend.onmoim.global.common.exception.GeneralException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtException;
@@ -40,59 +42,16 @@ public class JwtUtil {
         return createAccessToken(user, accessExpiration);
     }
 
-    // 쿠키에 JWT 토큰 설정
-    public void setTokenCookie(HttpServletResponse response, String token) {
-        Cookie cookie = new Cookie("accessToken", token);
-        cookie.setHttpOnly(true); // XSS 방지
-        cookie.setSecure(false); // HTTPS에서만 전송 (개발환경에서는 false)
-        cookie.setPath("/"); // 모든 경로에서 사용
-        cookie.setMaxAge((int) accessExpiration.toSeconds()); // 쿠키 만료시간
-        response.addCookie(cookie);
+    // RefreshToken 생성
+    public String createRefreshToken(User user) {
+        return createRefreshToken(user, refreshExpiration);
     }
 
-    // 쿠키에서 JWT 토큰 추출
-    public String getTokenFromCookie(HttpServletRequest request) {
-        if (request.getCookies() != null) {
-            for (Cookie cookie : request.getCookies()) {
-                if ("accessToken".equals(cookie.getName())) {
-                    return cookie.getValue();
-                }
-            }
-        }
-        return null;
-    }
-
-    // 쿠키에서 JWT 토큰 삭제
-    public void deleteTokenCookie(HttpServletResponse response) {
-        Cookie cookie = new Cookie("accessToken", null);
-        cookie.setHttpOnly(true);
-        cookie.setSecure(false);
-        cookie.setPath("/");
-        cookie.setMaxAge(0); // 즉시 만료
-        response.addCookie(cookie);
-    }
-
-
-
-    /** 토큰에서 이메일 가져오기
-     *
-     * @param token 유저 정보를 추출할 토큰
-     * @return 유저 이메일을 토큰에서 추출합니다
-     */
-    public String getEmail(String token) {
-        try {
-            return getClaims(token).getPayload().getSubject(); // Parsing해서 Subject 가져오기
-        } catch (JwtException e) {
-            return null;
-        }
-    }
-
-    /** 토큰 유효성 확인
-     *
-     * @param token 유효한지 확인할 토큰
-     * @return True, False 반환합니다
-     */
+    // 토큰 유효성 검사
     public boolean isValid(String token) {
+        if (token == null || token.trim().isEmpty()) {
+            return false;
+        }
         try {
             getClaims(token);
             return true;
@@ -108,7 +67,7 @@ public class JwtUtil {
         return Jwts.builder()
                 .subject(user.getId().toString())
                 .claim("email", user.getEmail())
-                .claim("name", user.getName())
+                .claim("nickname", user.getNickname())
                 .issuedAt(Date.from(now)) // 언제 발급한지
                 .expiration(Date.from(now.plus(expiration))) // 언제까지 유효한지
                 .signWith(secretKey) // sign할 Key
@@ -128,7 +87,7 @@ public class JwtUtil {
     }
 
     // 토큰 정보 가져오기
-    private Jws<Claims> getClaims(String token) throws JwtException {
+    public Jws<Claims> getClaims(String token) throws JwtException {
         return Jwts.parser()
                 .verifyWith(secretKey)
                 .clockSkewSeconds(60)
@@ -137,7 +96,46 @@ public class JwtUtil {
     }
 
     public Long getId(String token) {
-        Claims claims = (Claims) getClaims(token);
-        return Long.valueOf(claims.getSubject());
+        try {
+            Jws<Claims> claims = getClaims(token);
+            return Long.parseLong(claims.getPayload().getSubject());
+        } catch (Exception e) {
+            throw new GeneralException(GeneralErrorCode.INVALID_TOKEN);
+        }
+    }
+
+    public void setRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
+        Cookie cookie = new Cookie("refreshToken", refreshToken);
+        cookie.setHttpOnly(true); // XSS 방지
+        cookie.setSecure(false); // 개발: false / 운영: true (HTTPS)
+        cookie.setPath("/");
+        cookie.setMaxAge((int) refreshExpiration.toSeconds());
+        cookie.setAttribute("SameSite", "Lax");
+        response.addCookie(cookie);
+    }
+
+    public String getRefreshTokenCookie(HttpServletRequest request) {
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("refreshToken".equals(cookie.getName())) {
+                    String value = cookie.getValue();
+                    // 빈 문자, 공백 검사
+                    if (value != null && !value.trim().isEmpty()) {
+                        return value.trim();
+                    }
+                }
+            }
+            return null;
+        }
+        return null;
+    }
+
+    public void deleteRefreshTokenCookie(HttpServletResponse response) {
+        Cookie cookie = new Cookie("refreshToken", null);
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(0);
+        cookie.setAttribute("SameSite", "Lax");
+        response.addCookie(cookie);
     }
 }

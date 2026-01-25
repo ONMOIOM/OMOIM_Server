@@ -19,8 +19,28 @@ public enum GeneralErrorCode implements BaseErrorCode{
             "서버 연결에 실패했습니다"),
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED,
             "COMMON_403",
-            "인증되지 않은 사용자입니다."
-            );
+            "인증되지 않은 사용자입니다."),
+    MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND,
+            "MEMBER_404",
+            "존재하지 않는 사용자입니다."),
+    AUTHCODE_NOT_FOUND(HttpStatus.NOT_FOUND,
+            "AUTH_404",
+            "존재하지 않는 인증코드입니다."),
+    EXPIRED_AUTHCODE(HttpStatus.FORBIDDEN,
+            "AUTH_403",
+            "만료된 인증코드입니다."),
+    INVALID_REFRESH_TOKEN(HttpStatus.NOT_FOUND,
+            "REFRESH_404",
+            "Refresh Token이 존재하지 않습니다."),
+    EXPIRED_REFRESH_TOKEN(HttpStatus.NOT_FOUND,
+            "REFRESH_405",
+            "Refresh Token이 만료되었습니다."),
+    USER_INACTIVE(HttpStatus.FORBIDDEN,
+            "MEMBER_403",
+            "비활성화된 사용자입니다."),
+    INVALID_TOKEN(HttpStatus.NOT_FOUND,
+            "TOKEN_404",
+            "존재하지 않는 Token입니다.");
 
 
     private final HttpStatus status;

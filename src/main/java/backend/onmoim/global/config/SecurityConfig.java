@@ -31,11 +31,15 @@ public class SecurityConfig {
     };
 
     private final String[] login_uris = {
-            "/api/v1/users/login"
+            "/api/v1/users/login", "/api/v1/users/signup"
     };
 
     private final String[] test_uris = {
-            "api/v1/healthcheck"
+            "/api/v1/test/**"
+    };
+
+    private final String[] refresh_uris = {
+            "/api/v1/auth/refresh"
     };
 
 
@@ -53,6 +57,7 @@ public class SecurityConfig {
                         .requestMatchers(swagger_uris).permitAll()
                         .requestMatchers(login_uris).permitAll()
                         .requestMatchers(test_uris).permitAll()
+                        .requestMatchers(refresh_uris).permitAll()
                         .anyRequest().authenticated()
                 )
 

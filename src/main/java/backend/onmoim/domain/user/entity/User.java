@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
+@Table(name = "user")
 public class User extends BaseEntity {
 
     @Id
@@ -21,10 +22,7 @@ public class User extends BaseEntity {
     @Column(name = "user_id", unique = true, nullable = false)
     private Long id;
 
-    @Column(name = "name", nullable = false, length = 50)
-    private String name;
-
-    @Column(name = "nickname" , nullable = false, length = 50)
+    @Column(name = "nickname", nullable = false, length = 50)
     private String nickname;
 
     @Column(name = "introduction", length = 255)
@@ -35,7 +33,7 @@ public class User extends BaseEntity {
 
     @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)
-    private Status status;
+    private Status status = Status.ACTIVE;
 
     @Column(name = "instagram_id", length = 255)
     private String instagramId;
