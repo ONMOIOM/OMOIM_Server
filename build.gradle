@@ -40,6 +40,9 @@ dependencies {
 
     // DB
     implementation 'mysql:mysql-connector-java:8.0.33'
+
+	// mail
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
 }
 
 tasks.named('test') {
