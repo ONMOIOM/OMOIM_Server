@@ -5,6 +5,12 @@ import lombok.Builder;
 @Builder
 public class EmailAuthRequestDTO {
     public record SendCodeDTO(
-            String email
+            String email,
+            String turnstileToken
+    ) {}
+
+    public record VerifyCodeDTO(
+            String email,
+            String code
     ) {}
 }

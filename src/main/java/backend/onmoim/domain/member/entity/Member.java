@@ -1,4 +1,4 @@
-package backend.onmoim.domain.user.entity;
+package backend.onmoim.domain.member.entity;
 
 import backend.onmoim.global.entity.BaseEntity;
 import jakarta.persistence.*;

@@ -13,4 +13,10 @@ public class EmailAuthResponseDTO {
             Long expiresInSeconds
     ) {}
 
+    public record VerifyResponseDTO(
+            String email,
+            LocalDateTime verifiedAt,
+            String status
+    ) {}
+
 }

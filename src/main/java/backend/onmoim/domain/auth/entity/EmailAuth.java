@@ -25,6 +25,10 @@ public class EmailAuth extends BaseEntity {
     @Column(nullable = false)
     private Boolean isUsed;
 
+    private String failureReasonCode; // 실패사유 - 에러코드 적용
+
+    private String ip; // 로깅용 ip
+
     private LocalDateTime verifiedAt;
 
     // 업데이트 메서드
@@ -32,5 +36,10 @@ public class EmailAuth extends BaseEntity {
     public void markAsUsed() {
         this.isUsed = true;
         this.verifiedAt = LocalDateTime.now();
+    }
+
+    //에러코드
+    public void recordFailure(String errorCode) {
+        this.failureReasonCode = errorCode;
     }
 }
