@@ -43,7 +43,10 @@ public enum GeneralErrorCode implements BaseErrorCode{
             "존재하지 않는 Token입니다."),
     INVALID_TOKEN_FORMAT(HttpStatus.NOT_FOUND,
             "TOKEN_405",
-            "유효하지 않은 Token 형식입니다.");
+            "유효하지 않은 Token 형식입니다."),
+    NICKNAME_GENERATION_FAILED(HttpStatus.BAD_REQUEST,
+            "NICKNAME_400",
+            "닉네임을 생성에 실패했습니다. (중복 닉네임)");
 
 
     private final HttpStatus status;

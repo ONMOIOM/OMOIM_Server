@@ -1,6 +1,8 @@
 package backend.onmoim.global.utils;
 
 import backend.onmoim.domain.user.repository.UserQueryRepository;
+import backend.onmoim.global.common.code.GeneralErrorCode;
+import backend.onmoim.global.common.exception.GeneralException;
 import org.springframework.stereotype.Component;
 
 import java.util.Random;
@@ -33,13 +35,13 @@ public class RandomNicknameGenerator {
                 return nickname;
             }
         }
-        return "초월적 중복 발생";
+        throw new GeneralException(GeneralErrorCode.NICKNAME_GENERATION_FAILED);
     }
 
     private String createRandomNickname() {
         String adj = ADJECTIVES[random.nextInt(ADJECTIVES.length)];
         String noun = NOUNS[random.nextInt(NOUNS.length)];
-        int number = random.nextInt(99);
+        int number = random.nextInt(100);
         return String.format("%s%s%d", adj, noun, number);
     }
 
