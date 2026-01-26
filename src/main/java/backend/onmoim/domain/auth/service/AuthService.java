@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
+import static reactor.netty.http.HttpConnectionLiveness.log;
 
 @Service
 @RequiredArgsConstructor
@@ -35,20 +36,22 @@ public class AuthService {
         if (!jwtUtil.isValidRefreshToken(refreshToken)) {
             throw new GeneralException(GeneralErrorCode.INVALID_REFRESH_TOKEN);
         }
-        if (redisTemplate.opsForValue().get("blacklist:" + refreshToken) != null) {
-            throw new GeneralException(GeneralErrorCode.EXPIRED_REFRESH_TOKEN);
+        Long ttl = getTokenExpiry(refreshToken);
+        Boolean firstUse = redisTemplate.opsForValue()
+                .setIfAbsent("blacklist:" + refreshToken, "true", ttl, TimeUnit.MILLISECONDS);
+        if (Boolean.FALSE.equals(firstUse)) {
+            throw new GeneralException(GeneralErrorCode.INVALID_REFRESH_TOKEN);
         }
+
         Long userId = jwtUtil.getId(refreshToken);
         User user = userQueryRepository.findById(userId)
                 .orElseThrow(() -> new GeneralException(GeneralErrorCode.MEMBER_NOT_FOUND));
 
-        // 기존 refresh 블랙리스트 추가
-        Long ttl = Math.max(getTokenExpiry(refreshToken), 1L);
-        redisTemplate.opsForValue().set("blacklist:" + refreshToken, "true", ttl, TimeUnit.MILLISECONDS);
-
         // 새 access + 새 refresh 생성
         String newAccessToken = jwtUtil.createAccessToken(user);
         String newRefreshToken = jwtUtil.createRefreshToken(user);
+
+        log.info("Token rotation success for userId: {}", userId);
 
         return RotateTokenResponseDTO.builder()
                 .newAccessToken(newAccessToken)
