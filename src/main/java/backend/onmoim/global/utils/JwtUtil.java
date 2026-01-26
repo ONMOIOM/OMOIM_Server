@@ -68,6 +68,7 @@ public class JwtUtil {
                 .subject(user.getId().toString())
                 .claim("email", user.getEmail())
                 .claim("nickname", user.getNickname())
+                .claim("tokenType","access")
                 .issuedAt(Date.from(now)) // 언제 발급한지
                 .expiration(Date.from(now.plus(expiration))) // 언제까지 유효한지
                 .signWith(secretKey) // sign할 Key
@@ -80,6 +81,7 @@ public class JwtUtil {
 
         return Jwts.builder()
                 .subject(user.getId().toString())
+                .claim("tokenType","refresh")
                 .issuedAt(Date.from(now)) // 언제 발급한지
                 .expiration(Date.from(now.plus(expiration))) // 언제까지 유효한지
                 .signWith(secretKey) // sign할 Key
@@ -87,18 +89,19 @@ public class JwtUtil {
     }
 
     // 토큰 정보 가져오기
-    public Jws<Claims> getClaims(String token) throws JwtException {
+    public Claims getClaims(String token) throws JwtException {
         return Jwts.parser()
                 .verifyWith(secretKey)
                 .clockSkewSeconds(60)
                 .build()
-                .parseSignedClaims(token);
+                .parseSignedClaims(token)
+                .getPayload();
     }
 
     public Long getId(String token) {
         try {
-            Jws<Claims> claims = getClaims(token);
-            return Long.parseLong(claims.getPayload().getSubject());
+            Claims claims = getClaims(token);
+            return Long.parseLong(claims.getSubject());
         } catch (Exception e) {
             throw new GeneralException(GeneralErrorCode.INVALID_TOKEN);
         }
@@ -137,5 +140,23 @@ public class JwtUtil {
         cookie.setMaxAge(0);
         cookie.setAttribute("SameSite", "Lax");
         response.addCookie(cookie);
+    }
+
+    public boolean isValidAccessToken(String token) {
+        try {
+            Claims claims = getClaims(token);
+            return "access".equals(claims.get("tokenType"));
+        } catch (JwtException e) {
+            return false;
+        }
+    }
+
+    public boolean isValidRefreshToken(String token) {
+        try {
+            Claims claims = getClaims(token);
+            return "refresh".equals(claims.get("tokenType"));
+        } catch (JwtException e) {
+            return false;
+        }
     }
 }

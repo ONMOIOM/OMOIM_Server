@@ -26,8 +26,13 @@ public class AuthService {
 
     @Transactional(readOnly = true)
     public RotateTokenResponseDTO rotateAccessToken(String refreshToken) {
+
+        if (refreshToken == null || refreshToken.trim().isEmpty()) {
+            throw new GeneralException(GeneralErrorCode.INVALID_REFRESH_TOKEN);
+        }
+
         // 기존 검증 로직 (유효성, 블랙리스트, 사용자 확인)
-        if (!jwtUtil.isValid(refreshToken)) {
+        if (!jwtUtil.isValidRefreshToken(refreshToken)) {
             throw new GeneralException(GeneralErrorCode.INVALID_REFRESH_TOKEN);
         }
         if (redisTemplate.opsForValue().get("blacklist:" + refreshToken) != null) {
@@ -38,7 +43,7 @@ public class AuthService {
                 .orElseThrow(() -> new GeneralException(GeneralErrorCode.MEMBER_NOT_FOUND));
 
         // 기존 refresh 블랙리스트 추가
-        Long ttl = getTokenExpiry(refreshToken);
+        Long ttl = Math.max(getTokenExpiry(refreshToken), 1L);
         redisTemplate.opsForValue().set("blacklist:" + refreshToken, "true", ttl, TimeUnit.MILLISECONDS);
 
         // 새 access + 새 refresh 생성
@@ -61,7 +66,7 @@ public class AuthService {
     }
 
     private Long getTokenExpiry(String token) {
-        Claims claims = jwtUtil.getClaims(token).getPayload();
+        Claims claims = jwtUtil.getClaims(token);
         Date expiry = claims.getExpiration();
         return expiry.getTime() - System.currentTimeMillis();
     }
