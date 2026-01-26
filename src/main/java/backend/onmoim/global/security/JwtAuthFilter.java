@@ -44,7 +44,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
             token = token.replace("Bearer ", "");
 
-            if (jwtUtil.isValid(token)) {
+            if (jwtUtil.isValidAccessToken(token)) {
                 // JWT에서 id 추출
                 Long id = jwtUtil.getId(token);
 

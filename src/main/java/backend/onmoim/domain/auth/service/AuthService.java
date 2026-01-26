@@ -61,6 +61,12 @@ public class AuthService {
 
     // 로그아웃
     public void logout(String refreshToken, HttpServletResponse response) {
+        // 멱등성 유지를 위해 토큰이 없을 때에도 쿠키 삭제
+        if (refreshToken == null || !jwtUtil.isValidRefreshToken(refreshToken)) {
+            jwtUtil.deleteRefreshTokenCookie(response);
+            return;
+        }
+
         // Refresh 블랙리스트 추가 (만료까지)
         Long ttl = getTokenExpiry(refreshToken);
         redisTemplate.opsForValue().set("blacklist:" + refreshToken, "true", ttl, TimeUnit.MILLISECONDS);

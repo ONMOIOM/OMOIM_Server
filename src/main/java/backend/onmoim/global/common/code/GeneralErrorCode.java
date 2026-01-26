@@ -40,7 +40,10 @@ public enum GeneralErrorCode implements BaseErrorCode{
             "비활성화된 사용자입니다."),
     INVALID_TOKEN(HttpStatus.NOT_FOUND,
             "TOKEN_404",
-            "존재하지 않는 Token입니다.");
+            "존재하지 않는 Token입니다."),
+    INVALID_TOKEN_FORMAT(HttpStatus.NOT_FOUND,
+            "TOKEN_405",
+            "유효하지 않은 Token 형식입니다.");
 
 
     private final HttpStatus status;

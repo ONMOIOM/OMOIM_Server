@@ -47,19 +47,6 @@ public class JwtUtil {
         return createRefreshToken(user, refreshExpiration);
     }
 
-    // 토큰 유효성 검사
-    public boolean isValid(String token) {
-        if (token == null || token.trim().isEmpty()) {
-            return false;
-        }
-        try {
-            getClaims(token);
-            return true;
-        } catch (JwtException e) {
-            return false;
-        }
-    }
-
     // access 토큰 생성
     private String createAccessToken(User user, Duration expiration) {
         Instant now = Instant.now();
@@ -144,6 +131,9 @@ public class JwtUtil {
 
     public boolean isValidAccessToken(String token) {
         try {
+            if (token == null || token.trim().isEmpty()) {
+                throw new GeneralException(GeneralErrorCode.INVALID_TOKEN_FORMAT);
+            }
             Claims claims = getClaims(token);
             return "access".equals(claims.get("tokenType"));
         } catch (JwtException e) {
@@ -153,6 +143,9 @@ public class JwtUtil {
 
     public boolean isValidRefreshToken(String token) {
         try {
+            if (token == null || token.trim().isEmpty()) {
+                throw new GeneralException(GeneralErrorCode.INVALID_TOKEN_FORMAT);
+            }
             Claims claims = getClaims(token);
             return "refresh".equals(claims.get("tokenType"));
         } catch (JwtException e) {
