@@ -44,7 +44,7 @@ public class User extends BaseEntity {
     @Column(name = "linkedin_id", length = 255)
     private String linkedinId;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, optional = true)
-    @JoinColumn(name = "user_id")
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST, optional = true)
+    @JoinColumn(name = "profile_image_id")
     private ProfileImage profileImage;
 }

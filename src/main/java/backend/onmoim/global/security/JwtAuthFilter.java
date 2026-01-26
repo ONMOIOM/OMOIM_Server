@@ -3,6 +3,7 @@ package backend.onmoim.global.security;
 import backend.onmoim.domain.user.entity.User;
 import backend.onmoim.domain.user.repository.UserQueryRepository;
 import backend.onmoim.global.common.ApiResponse;
+import backend.onmoim.global.common.code.BaseErrorCode;
 import backend.onmoim.global.common.code.GeneralErrorCode;
 import backend.onmoim.global.common.exception.GeneralException;
 import backend.onmoim.global.utils.JwtUtil;
@@ -14,18 +15,47 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 
+@Slf4j
 @RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
     private final UserQueryRepository userQueryRepository;
+    private final ObjectMapper mapper = new ObjectMapper();
+
+    private static final String[] ALLOW_PATHS = {
+            "/swagger-ui/**", "/swagger-ui.html", "/swagger-resources/**",
+            "/v3/api-docs/**", "/webjars/**", "/swagger-resources/configuration/ui",
+            "/api/v1/users/signup", "/api/v1/users/login",
+            "/api/v1/auth/refresh",
+            "/api/v1/test/healthcheck"
+    };
+
+    // Swagger 경로는 필터를 거치지 않도록 우회
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        log.debug("JWT Filter check path: {}", path);
+
+        for (String allowPath : ALLOW_PATHS) {
+            String prefix = allowPath.replace("/**", "").replace("/*", "");
+            if (path.startsWith(prefix)) {
+                log.debug("Skip JWT filter for path: {}", path);
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     @Override
     protected void doFilterInternal(
@@ -35,43 +65,69 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     ) throws ServletException, IOException {
 
         try {
-            // 토큰 가져오기
-            String token = request.getHeader("Authorization");
-            if (token == null || !token.startsWith("Bearer ")) {
-                filterChain.doFilter(request, response);
-                return;
+            String accessToken = resolveToken(request);
+            if (accessToken == null) {
+                throw new GeneralException(GeneralErrorCode.UNAUTHORIZED);
             }
 
-            token = token.replace("Bearer ", "");
 
-            if (jwtUtil.isValidAccessToken(token)) {
-                // JWT에서 id 추출
-                Long id = jwtUtil.getId(token);
-
-                // DB에서 User 직접 조회
-                User user = userQueryRepository.findById(id)
-                        .orElseThrow(() -> new GeneralException(GeneralErrorCode.MEMBER_NOT_FOUND));
-
-                // SecurityContext에 User 객체 직접 설정
-                Authentication auth = new UsernamePasswordAuthenticationToken(
-                        user,
-                        null,
-                        new ArrayList<>()
-                );
-                SecurityContextHolder.getContext().setAuthentication(auth);
+            if (!jwtUtil.isValidAccessToken(accessToken)) {
+                throw new GeneralException(GeneralErrorCode.INVALID_TOKEN);
             }
-            filterChain.doFilter(request, response);
+            Long userId = jwtUtil.getId(accessToken);
+
+            User user = userQueryRepository.findById(userId)
+                    .orElseThrow(() -> new GeneralException(GeneralErrorCode.MEMBER_NOT_FOUND));
+
+            UsernamePasswordAuthenticationToken authentication =
+                    new UsernamePasswordAuthenticationToken(user, null, new ArrayList<>());
+            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        } catch (GeneralException e) {
+            log.error("[JWT] GeneralException: {}", e.getMessage());
+            handleGeneralJwtError(e.getCode(), response);
+            return;
         } catch (Exception e) {
-            response.setContentType("application/json;charset=UTF-8");
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-
-            ApiResponse<Void> errorResponse = ApiResponse.onFailure(
-                    GeneralErrorCode.UNAUTHORIZED,
-                    null
-            );
-
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.writeValue(response.getOutputStream(), errorResponse);
+            log.error("[JWT] Internal Error: {}", e.getMessage(), e);
+            handleJwtError("인증 처리 중 오류", response);
+            return;
         }
+
+        filterChain.doFilter(request, response);
+    }
+
+    // Authorization Header에서 JWT 추출
+    private String resolveToken(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
+        }
+        return null;
+    }
+
+    // JWT 커스텀 예외 처리
+    private void handleGeneralJwtError(BaseErrorCode errorCode, HttpServletResponse response)
+            throws IOException {
+        log.error("[JWT] Error: {}", errorCode.getMessage());
+        ApiResponse<String> errorResponse = ApiResponse.onFailure(errorCode, null);
+        setHttpServletResponse(errorCode.getStatus().value(), errorResponse, response);
+    }
+
+    // 내부 시스템 예외 처리
+    private void handleJwtError(String msg, HttpServletResponse response) throws IOException {
+        log.error("[JWT] Internal Exception: {}", msg);
+        ApiResponse<String> errorResponse = ApiResponse.onFailure(
+                GeneralErrorCode.INTERNAL_SERVER_ERROR, msg);
+        setHttpServletResponse(500, errorResponse, response);
+    }
+
+    // HTTP 응답 JSON 설정
+    private void setHttpServletResponse(int status, ApiResponse<?> responseBody,
+                                        HttpServletResponse response) throws IOException {
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setCharacterEncoding("UTF-8");
+        response.setStatus(status);
+        response.getWriter().write(mapper.writeValueAsString(responseBody));
     }
 }
