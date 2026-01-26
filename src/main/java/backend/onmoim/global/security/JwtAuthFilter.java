@@ -16,6 +16,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -31,6 +32,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
     private final UserQueryRepository userQueryRepository;
     private final ObjectMapper mapper = new ObjectMapper();
+    private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
     private static final String[] ALLOW_PATHS = {
             "/swagger-ui/**", "/swagger-ui.html", "/swagger-resources/**",
@@ -47,8 +49,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         log.debug("JWT Filter check path: {}", path);
 
         for (String allowPath : ALLOW_PATHS) {
-            String prefix = allowPath.replace("/**", "").replace("/*", "");
-            if (path.startsWith(prefix)) {
+            if (pathMatcher.match(allowPath, path)) {
                 log.debug("Skip JWT filter for path: {}", path);
                 return true;
             }
