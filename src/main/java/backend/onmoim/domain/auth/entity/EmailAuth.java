@@ -16,7 +16,7 @@ public class EmailAuth extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 50)
+    @Column(nullable = false, length = 254)
     private String email;
 
     @Column(nullable = false, length = 6)
@@ -27,7 +27,7 @@ public class EmailAuth extends BaseEntity {
 
     private String failureReasonCode; // 실패사유 - 에러코드 적용
 
-    private String ip; // 로깅용 ip
+    private String hashedIp; // 로깅용  해싱된 ip
 
     private LocalDateTime verifiedAt;
 

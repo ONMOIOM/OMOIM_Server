@@ -7,7 +7,6 @@ import backend.onmoim.domain.auth.entity.EmailAuth;
 import backend.onmoim.domain.auth.exception.EmailAuthErrorCode;
 import backend.onmoim.domain.auth.exception.EmailAuthException;
 import backend.onmoim.domain.auth.repository.EmailAuthRepository;
-import backend.onmoim.global.common.code.GeneralErrorCode;
 import backend.onmoim.global.common.exception.GeneralException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value; // 반드시 Spring의 Value를 임포트해야 함
@@ -31,7 +30,8 @@ class EmailAuthCommandServiceImpl implements EmailAuthCommandService {
     private final StringRedisTemplate redisTemplate;
     private final JavaMailSender mailSender;
     private final EmailAuthRepository emailAuthRepository;
-    private final RestTemplate restTemplate = new RestTemplate(); // 외부 API 호출을 위한 템플릿
+    private final EmailAuthLogService emailAuthLogService;
+    private final RestTemplate restTemplate = new RestTemplate(); // Cloudflare Turnstile 서버 검증용 HTTP 클라이언트
 
     @Value("${spring.cloudflare.turnstile.secret-key}")
     private String turnstileSecret;
@@ -39,64 +39,72 @@ class EmailAuthCommandServiceImpl implements EmailAuthCommandService {
     @Value("${spring.cloudflare.turnstile.verify-url}")
     private String turnstileVerifyUrl;
 
-    private static final String AUTH_PREFIX = "auth:email:";
-
     @Override
     public EmailAuthResponseDTO.VerificationResultDTO sendCode(EmailAuthRequestDTO.SendCodeDTO request, String ip) {
-        // Cloudflare Turnstile 검증 실행
-        verifyTurnstile(request.turnstileToken());
+        // 동일 이메일에 대한 1분 쿨타임 체크 (도배 방지)
+        String cooldownKey = "auth:cooldown:" + request.email();
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(cooldownKey))) {
+            throw new EmailAuthException(EmailAuthErrorCode.RATE_LIMITED);
+        }
 
-        // 6자리 난수 생성 (인증 코드)
-        String code = String.format("%06d", new Random().nextInt(1000000));
+        verifyTurnstile(request.turnstileToken()); //봇 방지 - Cloudflare Turnstile
 
-        // Redis에 5분간 저장 (만료 시간 설정)
-        redisTemplate.opsForValue().set(AUTH_PREFIX + request.email(), code, Duration.ofMinutes(5));
+        String code = String.format("%06d", new Random().nextInt(1000000)); // 인증코드 생성
+        redisTemplate.opsForValue().set("auth:email:" + request.email(), code, Duration.ofMinutes(5)); //redis에 인증코드저장, TTL 5분
 
-        // DB에 발송 이력 로깅 (운영 및 장애 대응용)
+        // 발송 성공 시 1분간 재발송 금지 설정
+        redisTemplate.opsForValue().set(cooldownKey, "true", Duration.ofMinutes(1));
+
+        // IP 해싱 처리 후 저장, log남기기
         emailAuthRepository.save(EmailAuth.builder()
                 .email(request.email())
                 .code(code)
-                .ip(ip)
+                .hashedIp(hashIp(ip)) // 해싱 ip, SHA-256해싱
                 .isUsed(false)
                 .build());
 
-        // 메일 발송 수행
-        sendMail(request.email(), code);
-
+        sendMail(request.email(), code); //이메일 전송
         return EmailAuthConverter.toResultDTO(request.email(), 300L);
     }
 
     @Override
     public EmailAuthResponseDTO.VerifyResponseDTO verifyCode(EmailAuthRequestDTO.VerifyCodeDTO request) {
-        // DB에서 가장 최근 인증 요청을 가져옴
         EmailAuth log = emailAuthRepository.findTopByEmailOrderByCreatedAtDesc(request.email())
-                .orElseThrow(() -> new EmailAuthException(EmailAuthErrorCode.DATA_NOT_FOUND));
+                .orElseThrow(() -> new EmailAuthException(EmailAuthErrorCode.DATA_NOT_FOUND)); // 최근 인증번호 요청 기준으로 검증
 
+        try { // 정상흐름
+            if (log.getIsUsed()) throw new EmailAuthException(EmailAuthErrorCode.TOKEN_ALREADY_USED); //이미 사용된 인증코드 차단
+
+            String savedCode = redisTemplate.opsForValue().get("auth:email:" + request.email());  //redis로 코드 검증
+            if (savedCode == null) throw new EmailAuthException(EmailAuthErrorCode.TOKEN_EXPIRED); // TTL만료
+            if (!savedCode.equals(request.code())) throw new EmailAuthException(EmailAuthErrorCode.INVALID_CODE); // code 불일치
+
+            log.markAsUsed(); // 인증성공처리
+            redisTemplate.delete("auth:email:" + request.email()); // 사용된 코드 redis에서 삭제
+            return new EmailAuthResponseDTO.VerifyResponseDTO(request.email(), LocalDateTime.now(), "SUCCESS");
+        } catch (GeneralException e) { // 예외처리
+            // 별도 트랜잭션 서비스를 호출하여 롤백 방지
+            emailAuthLogService.recordFailure(log.getId(), e.getCode().getCode());
+            throw e;
+        }
+    }
+
+    // IP를 해싱하는 메서드 (SHA-256 해싱)
+    private String hashIp(String ip) {
         try {
-            // 이미 성공(isUsed=true)한 요청인지 체크 중복 검증 방지
-            if (log.getIsUsed()) {
-                throw new GeneralException(EmailAuthErrorCode.TOKEN_ALREADY_USED);
+            java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(ip.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            StringBuilder hexString = new StringBuilder();
+
+            for (byte b : hash) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
             }
 
-            //  Redis에서 현재 유효한 코드 조회
-            String savedCode = redisTemplate.opsForValue().get(AUTH_PREFIX + request.email());
-
-            // 코드가 없으면 만료된 것으로 판단
-            if (savedCode == null) throw new GeneralException(EmailAuthErrorCode.TOKEN_EXPIRED);
-
-            // 입력한 코드와 불일치할 경우
-            if (!savedCode.equals(request.code())) throw new GeneralException(EmailAuthErrorCode.INVALID_CODE);
-
-            // 성공 처리- DB 상태 전이 및 Redis 데이터 즉시 삭제 (1회용 보장)
-            log.markAsUsed();
-            redisTemplate.delete(AUTH_PREFIX + request.email());
-
-            return new EmailAuthResponseDTO.VerifyResponseDTO(request.email(), LocalDateTime.now(), "SUCCESS");
-
-        } catch (GeneralException e) {
-            // 실패 로깅 - 예외 발생 시 DB에 실패 사유 코드를 남김
-            log.recordFailure(e.getCode().getCode());
-            throw e;
+            return hexString.toString();
+        } catch (Exception e) {
+            return "HASH_ERROR";
         }
     }
 
