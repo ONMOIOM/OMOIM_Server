@@ -40,7 +40,14 @@ dependencies {
 
     // DB
     implementation 'mysql:mysql-connector-java:8.0.33'
+
+	// mail
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
+
+	//redis
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 }
+
 
 tasks.named('test') {
 	useJUnitPlatform()
