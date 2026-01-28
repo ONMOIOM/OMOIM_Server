@@ -8,6 +8,7 @@ import backend.onmoim.global.common.code.GeneralSuccessCode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -25,7 +26,7 @@ public class EmailAuthController {
     @PostMapping("/verification")
     @Operation(summary = "인증 메일 발송 API")
     public ApiResponse<EmailAuthResponseDTO.VerificationResultDTO> sendCode(
-            @RequestBody EmailAuthRequestDTO.SendCodeDTO request,
+            @RequestBody @Valid EmailAuthRequestDTO.SendCodeDTO request,
             HttpServletRequest httpRequest
     ) {
         String ip = httpRequest.getRemoteAddr(); // 클라이언트 IP 추출
@@ -35,7 +36,7 @@ public class EmailAuthController {
     @PostMapping("/verify")
     @Operation(summary = "인증 코드 검증 API")
     public ApiResponse<EmailAuthResponseDTO.VerifyResponseDTO> verifyCode(
-            @RequestBody EmailAuthRequestDTO.VerifyCodeDTO request
+            @RequestBody @Valid EmailAuthRequestDTO.VerifyCodeDTO request
     ) {
         return ApiResponse.onSuccess(GeneralSuccessCode.REQUEST_OK, emailAuthCommandService.verifyCode(request));
     }
