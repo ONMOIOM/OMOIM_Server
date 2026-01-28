@@ -68,7 +68,7 @@ jobs:
               -e DEV_DB_USER=${{ secrets.DEV_DB_USER }} \
               -e DEV_DB_PW=${{ secrets.DEV_DB_PW }} \
               -e DEV_URL=${{ secrets.DEV_URL }} \
-              -e JWT_SECRET_KEY=${{secrets.JWT_SECRET_TOKEN}} \
+              -e JWT_SECRET_KEY=${{secrets.JWT_SECRET_KEY}} \
               -e JWT_TOKEN_EXPIRATION_ACCESS=3600000 \
               -e JWT_TOKEN_EXPIRATION_REFRESH=604800000 \
               ${{ secrets.DOCKER_USERNAME }}/onmoim:develop
