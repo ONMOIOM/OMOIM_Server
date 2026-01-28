@@ -25,12 +25,15 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
+    accounts:
+      - username: "${MAIL_USERNAME_1}"
+        password: "${MAIL_PASSWORD_1}"
+      - username: "${MAIL_USERNAME_2}"
+        password: "${MAIL_PASSWORD_2}"
     properties:
-      mail.smtp.auth: true
-      mail.smtp.starttls.enable: true
-      mail.smtp.ssl.trust: smtp.gmail.com
+      mail.smtp.auth: "true"
+      mail.smtp.starttls.enable: "true"
+      mail.smtp.ssl.trust: "smtp.gmail.com"
 
   cloudflare:
     turnstile:
