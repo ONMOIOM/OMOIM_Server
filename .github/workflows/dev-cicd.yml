@@ -68,6 +68,9 @@ jobs:
               -e DEV_DB_USER=${{ secrets.DEV_DB_USER }} \
               -e DEV_DB_PW=${{ secrets.DEV_DB_PW }} \
               -e DEV_URL=${{ secrets.DEV_URL }} \
+              -e REDIS_HOST=${{ secrets.REDIS_HOST }} \
+              -e REDIS_PORT=${{ secrets.REDIS_PORT }} \
+              -e REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }} \
               -e JWT_SECRET_KEY=${{secrets.JWT_SECRET_KEY}} \
               -e JWT_TOKEN_EXPIRATION_ACCESS=3600000 \
               -e JWT_TOKEN_EXPIRATION_REFRESH=604800000 \
