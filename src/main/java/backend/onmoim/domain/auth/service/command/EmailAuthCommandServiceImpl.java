@@ -10,6 +10,7 @@ import backend.onmoim.domain.auth.repository.EmailAuthRepository;
 import backend.onmoim.global.common.exception.GeneralException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -25,9 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-/**
- * 실패한 계정을 뒤로 보내는 이메일 서비스
- */
+
 @Slf4j
 @Service
 @Transactional
@@ -37,11 +36,8 @@ class EmailAuthCommandServiceImpl implements EmailAuthCommandService {
     private final StringRedisTemplate redisTemplate;
     private final EmailAuthRepository emailAuthRepository;
     private final EmailAuthLogService emailAuthLogService;
-
-    // 멀티스레드 환경에서 안전하게 리스트를 수정하기 위해 CopyOnWriteArrayList를 사용
     private final List<JavaMailSender> javaMailSenders;
-
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate; // 타임아웃이 적용된 RestTemplate 사용
     private final SecureRandom secureRandom = new SecureRandom();
 
     @Value("${spring.cloudflare.turnstile.secret-key}")
@@ -50,34 +46,41 @@ class EmailAuthCommandServiceImpl implements EmailAuthCommandService {
     @Value("${spring.cloudflare.turnstile.verify-url}")
     private String turnstileVerifyUrl;
 
-    // 생성자에서 주입받은 원본 리스트를 스레드 안전한 가변 리스트로 변환
-    public EmailAuthCommandServiceImpl(
-            StringRedisTemplate redisTemplate,
-            EmailAuthRepository emailAuthRepository,
-            EmailAuthLogService emailAuthLogService,
-            List<JavaMailSender> javaMailSenders) {
-        this.redisTemplate = redisTemplate;
-        this.emailAuthRepository = emailAuthRepository;
-        this.emailAuthLogService = emailAuthLogService;
-        // 실패 시 순서를 바꿔야 하므로 수정 가능한 CopyOnWriteArrayList로 관리
-        this.javaMailSenders = new CopyOnWriteArrayList<>(javaMailSenders);
-    }
+
+     //생성자에서 RestTemplateBuilder를 주입받아 타임아웃을 설정
+     public EmailAuthCommandServiceImpl(
+             StringRedisTemplate redisTemplate,
+             EmailAuthRepository emailAuthRepository,
+             EmailAuthLogService emailAuthLogService,
+             List<JavaMailSender> javaMailSenders,
+             RestTemplateBuilder restTemplateBuilder) {
+         this.redisTemplate = redisTemplate;
+         this.emailAuthRepository = emailAuthRepository;
+         this.emailAuthLogService = emailAuthLogService;
+         this.javaMailSenders = new CopyOnWriteArrayList<>(javaMailSenders);
+
+         this.restTemplate = restTemplateBuilder
+                 .connectTimeout(Duration.ofSeconds(3))
+                 .readTimeout(Duration.ofSeconds(3))
+                 .build();
+     }
 
     @Override
     public EmailAuthResponseDTO.VerificationResultDTO sendCode(EmailAuthRequestDTO.SendCodeDTO request, String ip) {
-        // 1 중복 요청 쿨타임 체크
+        // 동일 이메일 발송 쿨타임 체크-1분
         String cooldownKey = "auth:cooldown:" + request.email();
         Boolean isSet = redisTemplate.opsForValue().setIfAbsent(cooldownKey, "true", Duration.ofMinutes(1));
         if (Boolean.FALSE.equals(isSet)) {
             throw new EmailAuthException(EmailAuthErrorCode.RATE_LIMITED);
         }
 
-        //  봇 방지 검증
+        // 봇 방지 검증 (Turnstile)
         verifyTurnstile(request.turnstileToken());
 
-        // 인증 코드 및 DB 로그 미리 생성
+        // 인증 정보 DB 저장
         String code = String.format("%06d", secureRandom.nextInt(1_000_000));
         String authKey = "auth:email:" + request.email();
+
         EmailAuth emailAuth = emailAuthRepository.save(EmailAuth.builder()
                 .email(request.email())
                 .code(code)
@@ -85,47 +88,47 @@ class EmailAuthCommandServiceImpl implements EmailAuthCommandService {
                 .isUsed(false)
                 .build());
 
-        // 재정렬 전략이 적용된 발송 로직
         boolean isSent = false;
-
-        // javaMailSenders는 현재 가장 성공 가능성이 높은 계정 순으로 정렬
+        // 발송 계정 순회 및 발송 시도
         for (JavaMailSender sender : javaMailSenders) {
             JavaMailSenderImpl impl = (JavaMailSenderImpl) sender;
             String username = impl.getUsername();
             String usageKey = "auth:mail:usage:" + username;
 
-            // 계정별 사용량 체크 (500건)
-            String usageCount = redisTemplate.opsForValue().get(usageKey);
-            if (usageCount != null && Integer.parseInt(usageCount) >= 500) {
+            //  원자적인 increment를 먼저 수행하여 동시성 문제를 해결 - 선점형
+            Long usageCount = redisTemplate.opsForValue().increment(usageKey);
+
+            // 한도(500건) 체크 후 초과 시 카운트를 롤백하고 다음 계정으로 이동
+            if (usageCount != null && usageCount > 500) {
+                redisTemplate.opsForValue().decrement(usageKey);
                 continue;
             }
 
+            // 그날의 첫 발송인 경우 24시간 후 자동 초기화되도록 설정
+            if (usageCount != null && usageCount == 1) {
+                redisTemplate.expire(usageKey, Duration.ofDays(1));
+            }
+
             try {
-                // 발송 시도
+                // 메일 발송
                 sendMail(sender, request.email(), code);
 
-                // 성공 시 Redis 저장 및 사용량 갱신
+                // 성공 시 인증 코드 Redis 저장, TTL 5분
                 redisTemplate.opsForValue().set(authKey, code, Duration.ofMinutes(5));
-                if (redisTemplate.opsForValue().increment(usageKey) == 1) {
-                    redisTemplate.expire(usageKey, Duration.ofDays(1));
-                } // 사용량의 TTL은 하루
-
                 isSent = true;
-                break; // 성공했으므로 루프 종료
-
+                break;
             } catch (Exception e) {
-                // 문제 발생 시 해당 계정을 리스트의 맨 뒤로 이동
-                // CopyOnWriteArrayList는 순회 중에 수정해도 ConcurrentModificationException이 발생하지 않음.
-                log.error("메일 발송 실패 - 계정: {}, 사유: {}. 해당 계정을 후순위로 이동합니다.", username, e.getMessage());
+                // 발송 실패 시 선점했던 사용량 카운트를 다시 감소(롤백)시킴
+                log.error("메일 발송 실패 - 계정: {}, 사유: {}. 카운트 롤백 및 후순위 이동.", username, e.getMessage());
+                redisTemplate.opsForValue().decrement(usageKey);
 
-                javaMailSenders.remove(sender); // 현재 위치에서 제거
-                javaMailSenders.add(sender);    // 리스트의 맨 끝으로 추가
-
-                // 다음 루프에서 자동으로 다음계정 - 2순위였던 계정을 시도
+                // 실패한 계정은 리스트 맨 뒤로 이동
+                javaMailSenders.remove(sender);
+                javaMailSenders.add(sender);
             }
         }
 
-        // 모든 시도 실패 시 롤백
+        // 모든 계정이 실패했거나 한도를 초과한 경우
         if (!isSent) {
             redisTemplate.delete(cooldownKey);
             emailAuthRepository.delete(emailAuth);
@@ -135,8 +138,7 @@ class EmailAuthCommandServiceImpl implements EmailAuthCommandService {
         return EmailAuthConverter.toResultDTO(request.email(), 300L);
     }
 
-
-    // 메일 전송
+    // 메일전송 로직
     private void sendMail(JavaMailSender mailSender, String to, String code) {
         JavaMailSenderImpl impl = (JavaMailSenderImpl) mailSender;
         SimpleMailMessage message = new SimpleMailMessage();
@@ -147,31 +149,41 @@ class EmailAuthCommandServiceImpl implements EmailAuthCommandService {
         mailSender.send(message);
     }
 
+    // Cloudflare Turnstile 검증 로직
+    private void verifyTurnstile(String token) {
+        if (token == null || token.isBlank()) {
+            throw new EmailAuthException(EmailAuthErrorCode.BOT_DETECTED);
+        } // 사전에 null인지 검사
+        Map<String, String> body = Map.of("secret", turnstileSecret, "response", token);
+        Map response = restTemplate.postForObject(turnstileVerifyUrl, body, Map.class);
 
+        if (response == null || !Boolean.TRUE.equals(response.get("success"))) {
+            throw new GeneralException(EmailAuthErrorCode.BOT_DETECTED);
+        }
+    }
+
+    // 코드 검증 로직
     @Override
     public EmailAuthResponseDTO.VerifyResponseDTO verifyCode(EmailAuthRequestDTO.VerifyCodeDTO request) {
         EmailAuth log = emailAuthRepository.findTopByEmailOrderByCreatedAtDesc(request.email())
                 .orElseThrow(() -> new EmailAuthException(EmailAuthErrorCode.DATA_NOT_FOUND));
-        try {// 정상 흐름
-            if (log.getIsUsed()) throw new EmailAuthException(EmailAuthErrorCode.TOKEN_ALREADY_USED);
-
+        try {
+            if (log.getIsUsed()) throw new EmailAuthException(EmailAuthErrorCode.TOKEN_ALREADY_USED); // 사용된 토큰인지 검사
             String savedCode = redisTemplate.opsForValue().get("auth:email:" + request.email());
+            if (savedCode == null) throw new EmailAuthException(EmailAuthErrorCode.TOKEN_EXPIRED); // 인증 시간 검사
+            if (!savedCode.equals(request.code())) throw new EmailAuthException(EmailAuthErrorCode.INVALID_CODE); // 코드가 일치하는지 검사
 
-            if (savedCode == null) throw new EmailAuthException(EmailAuthErrorCode.TOKEN_EXPIRED);
-            if (!savedCode.equals(request.code())) throw new EmailAuthException(EmailAuthErrorCode.INVALID_CODE);
+            log.markAsUsed(); // 로깅
 
-            log.markAsUsed();  // 인증 성공 처리
             redisTemplate.delete("auth:email:" + request.email());
-
             return new EmailAuthResponseDTO.VerifyResponseDTO(request.email(), LocalDateTime.now(), "SUCCESS");
-        } catch (GeneralException e) {// 예외 처리
-            // 별도 트랜잭션 서비스를 호출하여 롤백 방지
+        } catch (GeneralException e) {
             emailAuthLogService.recordFailure(log.getId(), e.getCode().getCode());
             throw e;
         }
     }
 
-    // IP를 해싱하는 메서드 (SHA-256 해싱)
+    // ip해싱 로직
     private String hashIp(String ip) {
         try {
             java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
@@ -187,20 +199,6 @@ class EmailAuthCommandServiceImpl implements EmailAuthCommandService {
             return hexString.toString();
         } catch (Exception e) {
             return "HASH_ERROR";
-        }
-    }
-
-    // Cloudflare Turnstile 서버 사이드 검증
-    private void verifyTurnstile(String token) {
-        // Map.of()는 null 값을 허용하지 않으므로 사전에 null인지 검증
-        if (token == null || token.isBlank()) {
-            throw new EmailAuthException(EmailAuthErrorCode.BOT_DETECTED);
-        }
-        Map<String, String> body = Map.of("secret", turnstileSecret, "response", token);
-        Map<String, Object> response = restTemplate.postForObject(turnstileVerifyUrl, body, Map.class);
-
-        if (response == null || !Boolean.TRUE.equals(response.get("success"))) {
-            throw new GeneralException(EmailAuthErrorCode.BOT_DETECTED);
         }
     }
 }

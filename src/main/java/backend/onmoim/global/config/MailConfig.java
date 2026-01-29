@@ -27,7 +27,10 @@ public class MailConfig {
                     mailSender.setPassword(account.password());
 
                     Properties props = new Properties();
-                    mailProperties.properties().forEach(props::setProperty);
+                    // NPE 방지 - propertie가 null이 아닐 때만 복사
+                    if (mailProperties.properties() != null) {
+                        mailProperties.properties().forEach(props::setProperty);
+                    }
                     mailSender.setJavaMailProperties(props);
 
                     return mailSender;
