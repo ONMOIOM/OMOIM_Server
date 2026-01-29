@@ -15,6 +15,27 @@ spring:
     properties:
       hibernate:
         format_sql: true # 출력되는 SQL 쿼리를 보기 좋게 포맷팅
+
+
+  # 메일 발송 설정
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    accounts:
+      - username: "${MAIL_USERNAME_1}"
+        password: "${MAIL_PASSWORD_1}"
+      - username: "${MAIL_USERNAME_2}"
+        password: "${MAIL_PASSWORD_2}"
+    properties:
+      mail.smtp.auth: "true"
+      mail.smtp.starttls.enable: "true"
+      mail.smtp.ssl.trust: "smtp.gmail.com"
+
+  cloudflare:
+    turnstile:
+      secret-key: ${TURNSTILE_SECRET_KEY}
+      verify-url: https://challenges.cloudflare.com/turnstile/v0/siteverify
+      
   data:
     redis:
       host: ${REDIS_HOST}
@@ -28,7 +49,6 @@ spring:
           min-idle: 5
           max-wait: -1ms
         shutdown-timeout: 100ms
-
 
 jwt:
   token:
