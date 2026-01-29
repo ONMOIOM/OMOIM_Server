@@ -74,6 +74,10 @@ jobs:
               -e JWT_SECRET_KEY=${{secrets.JWT_SECRET_KEY}} \
               -e JWT_TOKEN_EXPIRATION_ACCESS=3600000 \
               -e JWT_TOKEN_EXPIRATION_REFRESH=604800000 \
+              -e MAIL_USERNAME_1=${{ secrets.MAIL_USERNAME_1 }} \
+              -e MAIL_PASSWORD_1=${{ secrets.MAIL_PASSWORD_1 }} \
+              -e MAIL_USERNAME_2=${{ secrets.MAIL_USERNAME_2 }} \
+              -e MAIL_PASSWORD_2=${{ secrets.MAIL_PASSWORD_2 }} \
               ${{ secrets.DOCKER_USERNAME }}/onmoim:develop
 
       - name: Send Discord Notification on Failure
