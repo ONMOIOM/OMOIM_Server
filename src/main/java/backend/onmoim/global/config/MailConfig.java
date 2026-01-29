@@ -6,7 +6,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
@@ -18,7 +20,11 @@ public class MailConfig {
 
     @Bean
     public List<JavaMailSender> javaMailSenders() {
-        return mailProperties.accounts().stream()
+        // accounts()가 null일 경우 빈 리스트를 반환하여 stream() 호출 시 NPE 방지
+        List<MailProperties.MailAccount> accounts = Optional.ofNullable(mailProperties.accounts())
+                .orElse(Collections.emptyList());
+
+        return accounts.stream()
                 .map(account -> {
                     JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
                     mailSender.setHost(mailProperties.host());
@@ -27,7 +33,7 @@ public class MailConfig {
                     mailSender.setPassword(account.password());
 
                     Properties props = new Properties();
-                    // NPE 방지 - propertie가 null이 아닐 때만 복사
+                    // NPE 방지 - properties가 null이 아닐 때만 복사
                     if (mailProperties.properties() != null) {
                         mailProperties.properties().forEach(props::setProperty);
                     }
