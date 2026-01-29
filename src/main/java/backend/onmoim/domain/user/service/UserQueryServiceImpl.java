@@ -1,5 +1,7 @@
 package backend.onmoim.domain.user.service;
 
+import backend.onmoim.domain.auth.dto.request.EmailAuthRequestDTO;
+import backend.onmoim.domain.auth.service.command.EmailAuthCommandService;
 import backend.onmoim.domain.user.converter.UserConverter;
 import backend.onmoim.domain.user.dto.req.LoginRequestDTO;
 import backend.onmoim.domain.user.dto.req.SignUpRequestDTO;
@@ -31,12 +33,18 @@ public class UserQueryServiceImpl implements UserQueryService{
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
     private final RandomNicknameGenerator randomNicknameGenerator;
+    private final EmailAuthCommandService emailAuthCommandService;
 
     @Override
     public LoginResponseDTO.LoginDTO login(
             LoginRequestDTO.@Valid LoginDTO dto,
             HttpServletResponse response
     ) {
+
+        // 이메일 인증코드 검증
+        emailAuthCommandService.verifyCode(
+                new EmailAuthRequestDTO.VerifyCodeDTO(dto.email(), dto.authCode())
+        );
 
         // User 조회
         User user = userQueryRepository.findByEmail(dto.email())
@@ -45,12 +53,6 @@ public class UserQueryServiceImpl implements UserQueryService{
         if (user.getStatus() != Status.ACTIVE) {
             throw new GeneralException(GeneralErrorCode.USER_INACTIVE);
         }
-
-        // 이메일 인증코드 검증
-        //if (!encoder.matches(dto.authCode(), user.getAuthCode())){
-        // throw new GeneralException(GeneralErrorCode.AUTHCODE_NOT_FOUND);
-        //}
-
 
         // 엑세스 토큰 발급
         String accessToken = jwtUtil.createAccessToken(user);
@@ -66,6 +68,11 @@ public class UserQueryServiceImpl implements UserQueryService{
     @Transactional
     @Override
     public SignUpResponseDTO.SignUpDTO signup(SignUpRequestDTO.SignUpDTO dto) {
+
+        // 이메일 인증코드 검증
+        emailAuthCommandService.verifyCode(
+                new EmailAuthRequestDTO.VerifyCodeDTO(dto.email(), dto.authCode())
+        );
 
         String randomNickname = randomNicknameGenerator.generateUniqueNickname();
 
