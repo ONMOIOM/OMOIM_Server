@@ -41,11 +41,6 @@ public class UserQueryServiceImpl implements UserQueryService{
             HttpServletResponse response
     ) {
 
-        // 이메일 인증코드 검증
-        emailAuthCommandService.verifyCode(
-                new EmailAuthRequestDTO.VerifyCodeDTO(dto.email(), dto.authCode())
-        );
-
         // User 조회
         User user = userQueryRepository.findByEmail(dto.email())
                 .orElseThrow(() -> new GeneralException(GeneralErrorCode.MEMBER_NOT_FOUND));
@@ -53,6 +48,11 @@ public class UserQueryServiceImpl implements UserQueryService{
         if (user.getStatus() != Status.ACTIVE) {
             throw new GeneralException(GeneralErrorCode.USER_INACTIVE);
         }
+
+        // 이메일 인증코드 검증
+        emailAuthCommandService.verifyCode(
+                new EmailAuthRequestDTO.VerifyCodeDTO(dto.email(), dto.authCode())
+        );
 
         // 엑세스 토큰 발급
         String accessToken = jwtUtil.createAccessToken(user);
