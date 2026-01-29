@@ -37,7 +37,7 @@ public class SecurityConfig {
     };
 
     private final String[] refresh_uris = {
-            "/api/v1/auth/refresh"
+            "/api/v1/auth/**"
     };
 
 
