@@ -69,6 +69,11 @@ public class UserQueryServiceImpl implements UserQueryService{
     @Override
     public SignUpResponseDTO.SignUpDTO signup(SignUpRequestDTO.SignUpDTO dto) {
 
+        // User 조회
+        if (userQueryRepository.existsByEmail(dto.email())) {
+            throw new GeneralException(GeneralErrorCode.DUPLICATE_MEMBER);
+        }
+
         // 이메일 인증코드 검증
         emailAuthCommandService.verifyCode(
                 new EmailAuthRequestDTO.VerifyCodeDTO(dto.email(), dto.authCode())
