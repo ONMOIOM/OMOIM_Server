@@ -40,7 +40,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             "/api/v1/users/signup", "/api/v1/users/login",
             "/api/v1/auth/email/**",
             "/api/v1/auth/refresh",
-            "/api/v1/test/healthcheck","/api/v1/auth/email/**"
+            "/api/v1/test/healthcheck"
     };
 
     // Swagger 경로는 필터를 거치지 않도록 우회
