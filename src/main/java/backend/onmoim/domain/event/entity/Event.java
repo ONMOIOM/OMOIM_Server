@@ -1,11 +1,8 @@
 package backend.onmoim.domain.event.entity;
-
-import backend.onmoim.domain.analytics.entity.Analytics;
+import backend.onmoim.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Getter
@@ -13,7 +10,7 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 public class Event {
-    @Column(name = "event_id")
+
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -30,6 +27,7 @@ public class Event {
     @Column(columnDefinition = "TEXT")
     private String content;
 
-    @OneToMany(mappedBy = "event")
-    private List<Analytics> analytics = new ArrayList<>();
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "host_id")
+    private User host;
 }
