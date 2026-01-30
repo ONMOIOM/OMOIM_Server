@@ -6,6 +6,7 @@ import backend.onmoim.domain.user.dto.res.LoginResponseDTO;
 import backend.onmoim.domain.user.dto.res.SignUpResponseDTO;
 import backend.onmoim.domain.user.dto.res.UserProfileDTO;
 import backend.onmoim.domain.user.entity.User;
+import backend.onmoim.domain.user.service.UserCommandService;
 import backend.onmoim.domain.user.service.UserQueryService;
 import backend.onmoim.global.common.ApiResponse;
 import backend.onmoim.global.common.code.GeneralSuccessCode;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController implements UserControllerDocs {
 
     private final UserQueryService userQueryService;
+    private final UserCommandService userCommandService;
 
 
     @Override
@@ -43,5 +45,14 @@ public class UserController implements UserControllerDocs {
     public ApiResponse<UserProfileDTO> getMyProfile(
             @AuthenticationPrincipal User user) {
         return ApiResponse.onSuccess(GeneralSuccessCode.REQUEST_OK, userQueryService.getMyProfile(user));  // User 전달
+    }
+      
+    @Override
+    @DeleteMapping("")
+    public ApiResponse<Void> withdraw(
+            @AuthenticationPrincipal User user
+    ) {
+        userCommandService.withdraw(user.getId());
+        return ApiResponse.onSuccess(GeneralSuccessCode.REQUEST_OK,null);
     }
 }

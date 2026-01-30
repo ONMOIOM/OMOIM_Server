@@ -30,4 +30,9 @@ public interface UserControllerDocs {
 
     @Operation(summary = "회원 조회", description = "가입된 사용자 정보를 조회합니다.")
     ApiResponse<UserProfileDTO> getMyProfile(@AuthenticationPrincipal User user);
+  
+    @Operation(summary = "회원 탈퇴", description = "회원 탈퇴를 처리합니다.")
+    ApiResponse<Void> withdraw(
+            @AuthenticationPrincipal User user
+    );
 }

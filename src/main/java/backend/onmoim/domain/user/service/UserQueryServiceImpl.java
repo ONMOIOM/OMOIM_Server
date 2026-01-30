@@ -60,6 +60,8 @@ public class UserQueryServiceImpl implements UserQueryService{
         String refreshToken = jwtUtil.createRefreshToken(user);
 
         jwtUtil.setRefreshTokenCookie(response, refreshToken);
+        String refreshKey = "refresh:token:" + user.getId();
+        jwtUtil.storeRefreshToken(refreshKey, refreshToken);
 
         // DTO 조립
         return UserConverter.toLoginDTO(user, accessToken);

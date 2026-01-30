@@ -4,7 +4,6 @@ import backend.onmoim.domain.user.entity.User;
 import backend.onmoim.global.common.code.GeneralErrorCode;
 import backend.onmoim.global.common.exception.GeneralException;
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -12,6 +11,8 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -26,15 +27,18 @@ public class JwtUtil {
     private final SecretKey secretKey;
     private final Duration accessExpiration;
     private final Duration refreshExpiration;
+    private final RedisTemplate<String, String> redisTemplate;
+
 
     public JwtUtil(
             @Value("${jwt.token.secretKey}") String secret,
             @Value("${jwt.token.expiration.access}") Long accessExpiration,
-            @Value("${jwt.token.expiration.refresh}" ) Long refreshExpiration
+            @Value("${jwt.token.expiration.refresh}" ) Long refreshExpiration, StringRedisTemplate redisTemplate
     ) {
         this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.accessExpiration = Duration.ofMillis(accessExpiration);
         this.refreshExpiration = Duration.ofMillis(refreshExpiration);
+        this.redisTemplate = redisTemplate;
     }
 
     // AccessToken 생성
@@ -151,5 +155,15 @@ public class JwtUtil {
         } catch (JwtException e) {
             return false;
         }
+    }
+
+    // refresh token 무효화
+    public void invalidateRefreshToken(Long userId) {
+        String refreshKey = "refresh:token:" + userId;
+        redisTemplate.delete(refreshKey);
+    }
+
+    public void storeRefreshToken(String key, String refreshToken) {
+        redisTemplate.opsForValue().set(key, refreshToken, refreshExpiration);
     }
 }

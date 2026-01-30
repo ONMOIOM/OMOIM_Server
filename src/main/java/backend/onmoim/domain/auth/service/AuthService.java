@@ -2,6 +2,7 @@ package backend.onmoim.domain.auth.service;
 
 import backend.onmoim.domain.auth.dto.response.RotateTokenResponseDTO;
 import backend.onmoim.domain.user.entity.User;
+import backend.onmoim.domain.user.enums.Status;
 import backend.onmoim.domain.user.repository.UserQueryRepository;
 import backend.onmoim.global.common.code.GeneralErrorCode;
 import backend.onmoim.global.common.exception.GeneralException;
@@ -10,6 +11,7 @@ import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,6 +48,11 @@ public class AuthService {
         Long userId = jwtUtil.getId(refreshToken);
         User user = userQueryRepository.findById(userId)
                 .orElseThrow(() -> new GeneralException(GeneralErrorCode.MEMBER_NOT_FOUND));
+
+        if (user.getStatus() != Status.ACTIVE) {
+            SecurityContextHolder.clearContext();
+            throw new GeneralException(GeneralErrorCode.USER_INACTIVE);
+        }
 
         // 새 access + 새 refresh 생성
         String newAccessToken = jwtUtil.createAccessToken(user);

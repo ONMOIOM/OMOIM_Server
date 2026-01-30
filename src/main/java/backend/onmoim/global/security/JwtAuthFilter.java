@@ -1,6 +1,7 @@
 package backend.onmoim.global.security;
 
 import backend.onmoim.domain.user.entity.User;
+import backend.onmoim.domain.user.enums.Status;
 import backend.onmoim.domain.user.repository.UserQueryRepository;
 import backend.onmoim.global.common.ApiResponse;
 import backend.onmoim.global.common.code.BaseErrorCode;
@@ -40,7 +41,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             "/api/v1/users/signup", "/api/v1/users/login",
             "/api/v1/auth/email/**",
             "/api/v1/auth/refresh",
-            "/api/v1/test/healthcheck"
+            "/api/v1/test/healthcheck",
+            "/api/v1/auth/**"
     };
 
     // Swagger 경로는 필터를 거치지 않도록 우회
@@ -74,7 +76,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 return;
             }
 
-
             if (!jwtUtil.isValidAccessToken(accessToken)) {
                 throw new GeneralException(GeneralErrorCode.INVALID_TOKEN);
             }
@@ -82,6 +83,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
             User user = userQueryRepository.findById(userId)
                     .orElseThrow(() -> new GeneralException(GeneralErrorCode.MEMBER_NOT_FOUND));
+
+            if (user.getStatus() != Status.ACTIVE) {
+                SecurityContextHolder.clearContext();
+                throw new GeneralException(GeneralErrorCode.USER_INACTIVE);
+            }
 
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(user, null, new ArrayList<>());
