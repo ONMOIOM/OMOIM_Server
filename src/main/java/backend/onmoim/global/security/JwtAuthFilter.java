@@ -1,6 +1,7 @@
 package backend.onmoim.global.security;
 
 import backend.onmoim.domain.user.entity.User;
+import backend.onmoim.domain.user.enums.Status;
 import backend.onmoim.domain.user.repository.UserQueryRepository;
 import backend.onmoim.global.common.ApiResponse;
 import backend.onmoim.global.common.code.BaseErrorCode;
@@ -71,7 +72,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 throw new GeneralException(GeneralErrorCode.UNAUTHORIZED);
             }
 
-
             if (!jwtUtil.isValidAccessToken(accessToken)) {
                 throw new GeneralException(GeneralErrorCode.INVALID_TOKEN);
             }
@@ -79,6 +79,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
             User user = userQueryRepository.findById(userId)
                     .orElseThrow(() -> new GeneralException(GeneralErrorCode.MEMBER_NOT_FOUND));
+
+            if (user.getStatus() != Status.ACTIVE) {
+                SecurityContextHolder.clearContext();
+                throw new GeneralException(GeneralErrorCode.USER_INACTIVE);
+            }
 
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(user, null, new ArrayList<>());
