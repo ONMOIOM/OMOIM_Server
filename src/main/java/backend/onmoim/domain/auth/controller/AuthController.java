@@ -1,6 +1,6 @@
 package backend.onmoim.domain.auth.controller;
 
-import backend.onmoim.domain.auth.dto.RotateTokenResponseDTO;
+import backend.onmoim.domain.auth.dto.response.RotateTokenResponseDTO;
 import backend.onmoim.domain.auth.service.AuthService;
 import backend.onmoim.global.common.ApiResponse;
 import backend.onmoim.global.common.code.GeneralSuccessCode;

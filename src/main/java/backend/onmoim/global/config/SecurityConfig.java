@@ -29,11 +29,12 @@ public class SecurityConfig {
     };
 
     private final String[] login_uris = {
-            "/api/v1/users/login", "/api/v1/users/signup"
+            "/api/v1/users/login", "/api/v1/users/signup","/api/v1/auth/email/**"
     };
 
     private final String[] test_uris = {
-            "/api/v1/test/**"
+            "/api/v1/test/**",
+            "/api/v1/auth/email/**"
     };
 
     private final String[] auth_uris = {

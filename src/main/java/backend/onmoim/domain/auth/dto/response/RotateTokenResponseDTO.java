@@ -1,4 +1,4 @@
-package backend.onmoim.domain.auth.dto;
+package backend.onmoim.domain.auth.dto.response;
 
 import lombok.Builder;
 import lombok.Getter;

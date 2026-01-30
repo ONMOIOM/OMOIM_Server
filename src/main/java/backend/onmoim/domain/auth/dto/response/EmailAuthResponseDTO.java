@@ -10,7 +10,8 @@ public class EmailAuthResponseDTO {
     public record VerificationResultDTO(
             String email,
             LocalDateTime sentAt,
-            Long expiresInSeconds
+            Long expiresInSeconds,
+            boolean isRegistered
     ) {}
 
     public record VerifyResponseDTO(

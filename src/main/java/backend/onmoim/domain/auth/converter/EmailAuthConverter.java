@@ -13,11 +13,12 @@ public class EmailAuthConverter {
                 .isUsed(false)
                 .build();
     }
-    public static EmailAuthResponseDTO.VerificationResultDTO toResultDTO(String email, Long expireSeconds) {
+    public static EmailAuthResponseDTO.VerificationResultDTO toResultDTO(String email, Long expireSeconds,boolean isRegistered) {
         return new EmailAuthResponseDTO.VerificationResultDTO(
                 email,
                 LocalDateTime.now(),
-                expireSeconds
+                expireSeconds,
+                isRegistered
         );
     }
 }
