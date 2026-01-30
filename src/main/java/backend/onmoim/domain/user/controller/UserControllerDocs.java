@@ -4,6 +4,7 @@ import backend.onmoim.domain.user.dto.req.LoginRequestDTO;
 import backend.onmoim.domain.user.dto.req.SignUpRequestDTO;
 import backend.onmoim.domain.user.dto.res.LoginResponseDTO;
 import backend.onmoim.domain.user.dto.res.SignUpResponseDTO;
+import backend.onmoim.domain.user.dto.res.UserProfileDTO;
 import backend.onmoim.domain.user.entity.User;
 import backend.onmoim.global.common.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -27,6 +28,9 @@ public interface UserControllerDocs {
             HttpServletResponse response
     );
 
+    @Operation(summary = "회원 조회", description = "가입된 사용자 정보를 조회합니다.")
+    ApiResponse<UserProfileDTO> getMyProfile(@AuthenticationPrincipal User user);
+  
     @Operation(summary = "회원 탈퇴", description = "회원 탈퇴를 처리합니다.")
     ApiResponse<Void> withdraw(
             @AuthenticationPrincipal User user

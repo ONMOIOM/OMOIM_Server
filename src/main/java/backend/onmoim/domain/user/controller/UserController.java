@@ -4,6 +4,7 @@ import backend.onmoim.domain.user.dto.req.LoginRequestDTO;
 import backend.onmoim.domain.user.dto.req.SignUpRequestDTO;
 import backend.onmoim.domain.user.dto.res.LoginResponseDTO;
 import backend.onmoim.domain.user.dto.res.SignUpResponseDTO;
+import backend.onmoim.domain.user.dto.res.UserProfileDTO;
 import backend.onmoim.domain.user.entity.User;
 import backend.onmoim.domain.user.service.UserCommandService;
 import backend.onmoim.domain.user.service.UserQueryService;
@@ -39,6 +40,13 @@ public class UserController implements UserControllerDocs {
         return ApiResponse.onSuccess(GeneralSuccessCode.REQUEST_OK, userQueryService.login(dto,response));
     }
 
+    @Override
+    @GetMapping("")
+    public ApiResponse<UserProfileDTO> getMyProfile(
+            @AuthenticationPrincipal User user) {
+        return ApiResponse.onSuccess(GeneralSuccessCode.REQUEST_OK, userQueryService.getMyProfile(user));  // User 전달
+    }
+      
     @Override
     @DeleteMapping("")
     public ApiResponse<Void> withdraw(

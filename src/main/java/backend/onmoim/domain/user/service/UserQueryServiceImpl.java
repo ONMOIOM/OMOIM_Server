@@ -9,6 +9,7 @@ import backend.onmoim.domain.user.dto.req.LoginRequestDTO;
 import backend.onmoim.domain.user.dto.req.SignUpRequestDTO;
 import backend.onmoim.domain.user.dto.res.LoginResponseDTO;
 import backend.onmoim.domain.user.dto.res.SignUpResponseDTO;
+import backend.onmoim.domain.user.dto.res.UserProfileDTO;
 import backend.onmoim.domain.user.entity.User;
 import backend.onmoim.domain.user.enums.Status;
 import backend.onmoim.domain.user.repository.UserQueryRepository;
@@ -18,11 +19,12 @@ import backend.onmoim.global.common.exception.GeneralException;
 import backend.onmoim.global.utils.JwtUtil;
 import backend.onmoim.global.utils.RandomNicknameGenerator;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -95,4 +97,12 @@ public class UserQueryServiceImpl implements UserQueryService{
         }
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public UserProfileDTO getMyProfile(@AuthenticationPrincipal User user) {
+        if (user.getStatus() != Status.ACTIVE) {
+            throw new GeneralException(GeneralErrorCode.USER_INACTIVE);
+        }
+        return UserConverter.toProfileDTO(user);
+    }
 }

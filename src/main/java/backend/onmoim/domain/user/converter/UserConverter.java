@@ -2,6 +2,7 @@ package backend.onmoim.domain.user.converter;
 
 import backend.onmoim.domain.user.dto.res.LoginResponseDTO;
 import backend.onmoim.domain.user.dto.res.SignUpResponseDTO;
+import backend.onmoim.domain.user.dto.res.UserProfileDTO;
 import backend.onmoim.domain.user.entity.User;
 
 public class UserConverter {
@@ -21,4 +22,17 @@ public class UserConverter {
                 .accessToken(accessToken)
                 .build();
     }
+
+    public static UserProfileDTO toProfileDTO(User user) {
+        return UserProfileDTO.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .nickname(user.getNickname())
+                .introduction(user.getIntroduction())
+                .instagramId(user.getInstagramId())
+                .twitterId(user.getTwitterId())
+                .linkedinId(user.getLinkedinId())
+                .build();
+    }
+
 }
