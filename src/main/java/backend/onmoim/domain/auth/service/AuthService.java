@@ -1,6 +1,6 @@
 package backend.onmoim.domain.auth.service;
 
-import backend.onmoim.domain.auth.dto.RotateTokenResponseDTO;
+import backend.onmoim.domain.auth.dto.response.RotateTokenResponseDTO;
 import backend.onmoim.domain.user.entity.User;
 import backend.onmoim.domain.user.repository.UserQueryRepository;
 import backend.onmoim.global.common.code.GeneralErrorCode;
