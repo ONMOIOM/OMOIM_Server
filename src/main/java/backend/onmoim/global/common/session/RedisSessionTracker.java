@@ -1,4 +1,6 @@
 package backend.onmoim.global.common.session;
+import backend.onmoim.domain.analytics.code.AnalyticsErrorCode;
+import backend.onmoim.global.common.exception.GeneralException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.AllArgsConstructor;
@@ -36,7 +38,7 @@ public class RedisSessionTracker {
            String json = objectMapper.writeValueAsString(data);
            redisTemplate.opsForValue().set(KEY_PREFIX + sessionId, json, TTL);
        } catch (JsonProcessingException e) {
-           throw new RuntimeException("Redis 저장 실패", e);
+           throw new GeneralException(AnalyticsErrorCode.REDIS_SAVE_FAIL);
        }
 
        return sessionId;

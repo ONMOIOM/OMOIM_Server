@@ -24,8 +24,9 @@ public class AnalyticsController {
     public ApiResponse<AnalyticsResDto.SessionStartResDto> sessionStart(@AuthenticationPrincipal User user, @PathVariable Long eventId)
     {
         Long userId=user.getId();
-        String sessionId =analyticsCommendService.sessionEnter(userId,eventId);
         analyticsCommendService.enterCount(eventId);
+        String sessionId =analyticsCommendService.sessionEnter(userId,eventId);
+
 
         return ApiResponse.onSuccess(
                 AnalyticsSuccessCode.REQUEST_OK,

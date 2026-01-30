@@ -19,13 +19,14 @@ public class Analytics {
     @Column(nullable=false)
     private LocalDate date;
 
+    @Version
     @Column(nullable = false)
     private int clickCount;
 
     @Column(nullable = false)
     private long avgSessionTimeSec;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "event_id")
     private Event event;
 

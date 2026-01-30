@@ -3,7 +3,6 @@ package backend.onmoim.domain.analytics.code;
 import backend.onmoim.global.common.code.BaseErrorCode;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.springframework.boot.autoconfigure.graphql.GraphQlProperties;
 import org.springframework.http.HttpStatus;
 
 @Getter

@@ -5,6 +5,7 @@ import backend.onmoim.domain.analytics.entity.Analytics;
 import backend.onmoim.domain.analytics.repository.AnalyticsRespository;
 import backend.onmoim.global.common.exception.GeneralException;
 import backend.onmoim.global.common.session.RedisSessionTracker;
+import jakarta.persistence.OptimisticLockException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -28,9 +29,22 @@ public class AnalyticsCommandService {
 
     public void enterCount(Long eventId){
         LocalDate today = LocalDate.now();
-        Analytics analytics = analyticsRespoitory.findByEventIdAndDate(eventId, today)
-                .orElseThrow(() -> new GeneralException(AnalyticsErrorCode.BAD_EVENT_ID));
+        int retries = 5;
 
-        analytics.incrementClickCount();
+        while(retries>0) {
+            try {
+                Analytics analytics = analyticsRespoitory.findByEventIdAndDate(eventId, today)
+                        .orElseThrow(() -> new GeneralException(AnalyticsErrorCode.BAD_EVENT_ID));
+
+                analytics.incrementClickCount();
+
+                analyticsRespoitory.save(analytics);
+                break;
+            }
+            catch(OptimisticLockException e){
+                retries--;
+                if(retries == 0) throw e;
+            }
+        }
     }
 }
