@@ -36,8 +36,9 @@ public class SecurityConfig {
             "/api/v1/test/**"
     };
 
-    private final String[] refresh_uris = {
-            "/api/v1/auth/**"
+    private final String[] auth_uris = {
+            "/api/v1/auth/email/**",
+            "/api/v1/auth/refresh"
     };
 
 
@@ -52,7 +53,7 @@ public class SecurityConfig {
                         .requestMatchers(swagger_uris).permitAll()
                         .requestMatchers(login_uris).permitAll()
                         .requestMatchers(test_uris).permitAll()
-                        .requestMatchers(refresh_uris).permitAll()
+                        .requestMatchers(auth_uris).permitAll()
                         .anyRequest().authenticated()
                 )
 

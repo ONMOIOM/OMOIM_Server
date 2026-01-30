@@ -7,6 +7,7 @@ import backend.onmoim.domain.auth.entity.EmailAuth;
 import backend.onmoim.domain.auth.exception.EmailAuthErrorCode;
 import backend.onmoim.domain.auth.exception.EmailAuthException;
 import backend.onmoim.domain.auth.repository.EmailAuthRepository;
+import backend.onmoim.domain.user.repository.UserQueryRepository;
 import backend.onmoim.global.common.exception.GeneralException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,6 +38,7 @@ class EmailAuthCommandServiceImpl implements EmailAuthCommandService {
     private final EmailAuthRepository emailAuthRepository;
     private final EmailAuthLogService emailAuthLogService;
     private final List<JavaMailSender> javaMailSenders;
+    private final UserQueryRepository userQueryRepository;
     private final RestTemplate restTemplate; // 타임아웃이 적용된 RestTemplate 사용
     private final SecureRandom secureRandom = new SecureRandom();
 
@@ -51,13 +53,16 @@ class EmailAuthCommandServiceImpl implements EmailAuthCommandService {
      public EmailAuthCommandServiceImpl(
              StringRedisTemplate redisTemplate,
              EmailAuthRepository emailAuthRepository,
+             UserQueryRepository userQueryRepository,
              EmailAuthLogService emailAuthLogService,
              List<JavaMailSender> javaMailSenders,
              RestTemplateBuilder restTemplateBuilder) {
          this.redisTemplate = redisTemplate;
          this.emailAuthRepository = emailAuthRepository;
+         this.userQueryRepository = userQueryRepository;
          this.emailAuthLogService = emailAuthLogService;
          this.javaMailSenders = new CopyOnWriteArrayList<>(javaMailSenders);
+
 
          this.restTemplate = restTemplateBuilder
                  .connectTimeout(Duration.ofSeconds(3))
@@ -74,8 +79,12 @@ class EmailAuthCommandServiceImpl implements EmailAuthCommandService {
             throw new EmailAuthException(EmailAuthErrorCode.RATE_LIMITED);
         }
 
+
         // 봇 방지 검증 (Turnstile)
         verifyTurnstile(request.turnstileToken());
+
+        //회원유무 조회
+        boolean isRegistered = userQueryRepository.existsByEmail(request.email());
 
         // 인증 정보 DB 저장
         String code = String.format("%06d", secureRandom.nextInt(1_000_000));
@@ -135,7 +144,7 @@ class EmailAuthCommandServiceImpl implements EmailAuthCommandService {
             throw new EmailAuthException(EmailAuthErrorCode.ALL_MAIL_ACCOUNTS_EXHAUSTED);
         }
 
-        return EmailAuthConverter.toResultDTO(request.email(), 300L);
+        return EmailAuthConverter.toResultDTO(request.email(), 300L, isRegistered);
     }
 
     // 메일전송 로직

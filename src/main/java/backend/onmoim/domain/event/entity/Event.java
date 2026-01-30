@@ -1,8 +1,11 @@
 package backend.onmoim.domain.event.entity;
 
+import backend.onmoim.domain.analytics.entity.Analytics;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -26,4 +29,7 @@ public class Event {
 
     @Column(columnDefinition = "TEXT")
     private String content;
+
+    @OneToMany(mappedBy = "event")
+    private List<Analytics> analytics = new ArrayList<>();
 }

@@ -1,5 +1,9 @@
 package backend.onmoim.domain.user.service;
 
+import backend.onmoim.domain.auth.dto.request.EmailAuthRequestDTO;
+import backend.onmoim.domain.auth.exception.EmailAuthErrorCode;
+import backend.onmoim.domain.auth.exception.EmailAuthException;
+import backend.onmoim.domain.auth.service.command.EmailAuthCommandService;
 import backend.onmoim.domain.user.converter.UserConverter;
 import backend.onmoim.domain.user.dto.req.LoginRequestDTO;
 import backend.onmoim.domain.user.dto.req.SignUpRequestDTO;
@@ -17,10 +21,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +32,7 @@ public class UserQueryServiceImpl implements UserQueryService{
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
     private final RandomNicknameGenerator randomNicknameGenerator;
+    private final EmailAuthCommandService emailAuthCommandService;
 
     @Override
     public LoginResponseDTO.LoginDTO login(
@@ -46,10 +49,9 @@ public class UserQueryServiceImpl implements UserQueryService{
         }
 
         // 이메일 인증코드 검증
-        //if (!encoder.matches(dto.authCode(), user.getAuthCode())){
-        // throw new GeneralException(GeneralErrorCode.AUTHCODE_NOT_FOUND);
-        //}
-
+        emailAuthCommandService.verifyCode(
+                new EmailAuthRequestDTO.VerifyCodeDTO(dto.email(), dto.authCode())
+        );
 
         // 엑세스 토큰 발급
         String accessToken = jwtUtil.createAccessToken(user);
@@ -68,6 +70,15 @@ public class UserQueryServiceImpl implements UserQueryService{
     @Override
     public SignUpResponseDTO.SignUpDTO signup(SignUpRequestDTO.SignUpDTO dto) {
 
+        // 먼저 이메일 인증 검증 (존재 여부 노출 방지)
+        try {
+            emailAuthCommandService.verifyCode(
+                    new EmailAuthRequestDTO.VerifyCodeDTO(dto.email(), dto.authCode())
+            );
+        } catch (EmailAuthException e) {
+            throw new EmailAuthException(EmailAuthErrorCode.DATA_NOT_FOUND);
+        }
+
         String randomNickname = randomNicknameGenerator.generateUniqueNickname();
 
         User user = User.builder()
@@ -76,11 +87,12 @@ public class UserQueryServiceImpl implements UserQueryService{
                 .status(Status.ACTIVE)
                 .build();
 
-        // DB 적용
-        userRepository.save(user);
-
-        // 응답 DTO 생성
-        return UserConverter.toSignUpDTO(user);
+        try {
+            userRepository.save(user);
+            return UserConverter.toSignUpDTO(user);
+        } catch (DataIntegrityViolationException e) {
+            throw new GeneralException(GeneralErrorCode.DUPLICATE_MEMBER);
+        }
     }
 
 }
