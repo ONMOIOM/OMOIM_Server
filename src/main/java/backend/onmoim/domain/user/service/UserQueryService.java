@@ -4,9 +4,12 @@ import backend.onmoim.domain.user.dto.req.LoginRequestDTO;
 import backend.onmoim.domain.user.dto.req.SignUpRequestDTO;
 import backend.onmoim.domain.user.dto.res.LoginResponseDTO;
 import backend.onmoim.domain.user.dto.res.SignUpResponseDTO;
+import backend.onmoim.domain.user.dto.res.UserProfileDTO;
+import backend.onmoim.domain.user.entity.User;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 public interface UserQueryService {
     LoginResponseDTO.LoginDTO login(@Valid LoginRequestDTO.LoginDTO dto, HttpServletResponse response);
@@ -14,4 +17,6 @@ public interface UserQueryService {
     // 회원가입
     @Transactional
     SignUpResponseDTO.SignUpDTO signup(SignUpRequestDTO.SignUpDTO dto);
+
+    UserProfileDTO getMyProfile(@AuthenticationPrincipal User user);
 }

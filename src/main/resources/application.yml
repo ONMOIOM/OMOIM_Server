@@ -56,3 +56,7 @@ jwt:
     expiration:
       access: 3600000
       refresh: 604800000
+
+logging:
+  level:
+    backend.onmoim.global.security.JwtAuthFilter: DEBUG

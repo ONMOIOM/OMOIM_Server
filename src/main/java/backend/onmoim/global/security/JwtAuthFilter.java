@@ -69,7 +69,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         try {
             String accessToken = resolveToken(request);
             if (accessToken == null) {
-                throw new GeneralException(GeneralErrorCode.UNAUTHORIZED);
+                log.warn("No access token provided for path: {}", request.getRequestURI());
+                filterChain.doFilter(request, response);
+                return;
             }
 
 
