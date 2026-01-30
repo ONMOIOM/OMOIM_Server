@@ -40,7 +40,7 @@ public class UserController implements UserControllerDocs {
     }
 
     @Override
-    @DeleteMapping("/")
+    @DeleteMapping("")
     public ApiResponse<Void> withdraw(
             @AuthenticationPrincipal User user
     ) {
