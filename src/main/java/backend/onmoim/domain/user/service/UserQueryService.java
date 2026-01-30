@@ -2,6 +2,7 @@ package backend.onmoim.domain.user.service;
 
 import backend.onmoim.domain.user.dto.req.LoginRequestDTO;
 import backend.onmoim.domain.user.dto.req.SignUpRequestDTO;
+import backend.onmoim.domain.user.dto.req.UserProfileUpdateDTO;
 import backend.onmoim.domain.user.dto.res.LoginResponseDTO;
 import backend.onmoim.domain.user.dto.res.SignUpResponseDTO;
 import backend.onmoim.domain.user.dto.res.UserProfileDTO;
@@ -18,5 +19,9 @@ public interface UserQueryService {
     @Transactional
     SignUpResponseDTO.SignUpDTO signup(SignUpRequestDTO.SignUpDTO dto);
 
+    @Transactional
     UserProfileDTO getMyProfile(@AuthenticationPrincipal User user);
+
+    @Transactional
+    UserProfileDTO updateMyProfile(@AuthenticationPrincipal User loginUser, UserProfileUpdateDTO dto);
 }

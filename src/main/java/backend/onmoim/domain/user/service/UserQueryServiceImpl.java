@@ -7,6 +7,7 @@ import backend.onmoim.domain.auth.service.command.EmailAuthCommandService;
 import backend.onmoim.domain.user.converter.UserConverter;
 import backend.onmoim.domain.user.dto.req.LoginRequestDTO;
 import backend.onmoim.domain.user.dto.req.SignUpRequestDTO;
+import backend.onmoim.domain.user.dto.req.UserProfileUpdateDTO;
 import backend.onmoim.domain.user.dto.res.LoginResponseDTO;
 import backend.onmoim.domain.user.dto.res.SignUpResponseDTO;
 import backend.onmoim.domain.user.dto.res.UserProfileDTO;
@@ -103,6 +104,25 @@ public class UserQueryServiceImpl implements UserQueryService{
         if (user.getStatus() != Status.ACTIVE) {
             throw new GeneralException(GeneralErrorCode.USER_INACTIVE);
         }
+        return UserConverter.toProfileDTO(user);
+    }
+
+    @Transactional
+    @Override
+    public UserProfileDTO updateMyProfile(@AuthenticationPrincipal User loginUser, UserProfileUpdateDTO dto) {
+
+        User user = userRepository.findById(loginUser.getId())
+                .orElseThrow(() -> new GeneralException(GeneralErrorCode.MEMBER_NOT_FOUND));
+
+        // 엔티티 메서드 호출 (null 자동 무시)
+        user.updateProfile(
+                dto.getNickname(),
+                dto.getIntroduction(),
+                dto.getInstagramId(),
+                dto.getTwitterId(),
+                dto.getLinkedinId()
+        );
+
         return UserConverter.toProfileDTO(user);
     }
 }
