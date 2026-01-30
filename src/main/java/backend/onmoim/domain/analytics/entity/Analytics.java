@@ -18,8 +18,7 @@ public class Analytics {
 
     @Column(nullable=false)
     private LocalDate date;
-
-    @Version
+    
     @Column(nullable = false)
     private int clickCount;
 
