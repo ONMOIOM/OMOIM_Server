@@ -163,4 +163,7 @@ public class JwtUtil {
         redisTemplate.delete(refreshKey);
     }
 
+    public void storeRefreshToken(String key, String refreshToken) {
+        redisTemplate.opsForValue().set(key, refreshToken, refreshExpiration);
+    }
 }

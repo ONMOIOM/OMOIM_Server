@@ -40,7 +40,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             "/v3/api-docs/**", "/webjars/**", "/swagger-resources/configuration/ui",
             "/api/v1/users/signup", "/api/v1/users/login",
             "/api/v1/auth/refresh",
-            "/api/v1/test/healthcheck"
+            "/api/v1/test/healthcheck",
+            "/api/v1/auth/**"
     };
 
     // Swagger 경로는 필터를 거치지 않도록 우회

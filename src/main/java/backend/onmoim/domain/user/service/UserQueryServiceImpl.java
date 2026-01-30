@@ -17,7 +17,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -57,6 +56,8 @@ public class UserQueryServiceImpl implements UserQueryService{
         String refreshToken = jwtUtil.createRefreshToken(user);
 
         jwtUtil.setRefreshTokenCookie(response, refreshToken);
+        String refreshKey = "refresh:token:" + user.getId();
+        jwtUtil.storeRefreshToken(refreshKey, refreshToken);
 
         // DTO 조립
         return UserConverter.toLoginDTO(user, accessToken);
