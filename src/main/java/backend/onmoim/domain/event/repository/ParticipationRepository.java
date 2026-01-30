@@ -13,5 +13,7 @@ public interface ParticipationRepository extends JpaRepository<Participation, Lo
 
     // 특정 행사의 모든 참여자 목록 가져오기
     java.util.List<Participation> findAllByEvent(Event event);
+
+    void deleteAllByEvent(Event event);
 }
 //DB에서 "내가 이 행사에 투표한 적이 있나?"를 확인
