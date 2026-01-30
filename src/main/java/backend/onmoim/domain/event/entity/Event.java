@@ -1,5 +1,5 @@
 package backend.onmoim.domain.event.entity;
-
+import backend.onmoim.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -26,4 +26,8 @@ public class Event {
 
     @Column(columnDefinition = "TEXT")
     private String content;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "host_id")
+    private User host;
 }

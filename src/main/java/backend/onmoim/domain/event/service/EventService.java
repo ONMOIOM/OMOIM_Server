@@ -63,4 +63,18 @@ public class EventService {
                         }
                 );
     }
+    @Transactional
+    public void deleteEvent(Long eventId, Long currentUserId) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new IllegalArgumentException("삭제할 행사를 찾을 수 없습니다."));
+
+        //기존 데이터에 host가 null이면 에러가 날 수 있다
+        if (event.getHost() == null || !event.getHost().getId().equals(currentUserId)) {
+            throw new IllegalArgumentException("행사를 삭제할 권한이 없습니다. (주최자만 삭제 가능)");
+        }
+
+        participationRepository.deleteAllByEvent(event);
+
+        eventRepository.delete(event);
+    }
 }

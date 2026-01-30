@@ -32,4 +32,15 @@ public class EventController {
 
         return ApiResponse.onSuccess(GeneralSuccessCode.REQUEST_OK, "투표가 완료되었습니다.");
     }
+
+    @DeleteMapping("/{eventId}")
+    public ApiResponse<String> deleteEvent(@PathVariable Long eventId) {
+        // [임시] 현재 로그인한 유저 ID (나중에는 SecurityContext에서 가져옴)
+        Long currentUserId = 1L;
+
+        // 서비스에 '행사 번호'와 '유저 번호'를 같이 넘깁니다.
+        eventService.deleteEvent(eventId, currentUserId);
+
+        return ApiResponse.onSuccess(GeneralSuccessCode.REQUEST_OK, "행사가 성공적으로 삭제되었습니다.");
+    }
 }
