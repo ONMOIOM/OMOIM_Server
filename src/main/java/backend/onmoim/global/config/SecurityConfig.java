@@ -33,8 +33,7 @@ public class SecurityConfig {
     };
 
     private final String[] test_uris = {
-            "/api/v1/test/**",
-            "/api/v1/auth/email/**"
+            "/api/v1/test/**"
     };
 
     private final String[] auth_uris = {
