@@ -80,10 +80,11 @@ class EmailAuthCommandServiceImpl implements EmailAuthCommandService {
         }
 
 
-        boolean isRegistered = userQueryRepository.existsByEmail(request.email());
-
         // 봇 방지 검증 (Turnstile)
         verifyTurnstile(request.turnstileToken());
+
+        //회원유무 조회
+        boolean isRegistered = userQueryRepository.existsByEmail(request.email());
 
         // 인증 정보 DB 저장
         String code = String.format("%06d", secureRandom.nextInt(1_000_000));
