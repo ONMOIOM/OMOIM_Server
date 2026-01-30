@@ -7,6 +7,7 @@ import backend.onmoim.global.common.code.GeneralErrorCode;
 import backend.onmoim.global.common.exception.GeneralException;
 import backend.onmoim.global.utils.JwtUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,8 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
-import static reactor.netty.http.HttpConnectionLiveness.log;
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserCommandServiceImpl implements UserCommandService {
