@@ -1,6 +1,8 @@
 package backend.onmoim.domain.user.service;
 
 import backend.onmoim.domain.auth.dto.request.EmailAuthRequestDTO;
+import backend.onmoim.domain.auth.exception.EmailAuthErrorCode;
+import backend.onmoim.domain.auth.exception.EmailAuthException;
 import backend.onmoim.domain.auth.service.command.EmailAuthCommandService;
 import backend.onmoim.domain.user.converter.UserConverter;
 import backend.onmoim.domain.user.dto.req.LoginRequestDTO;
@@ -19,11 +21,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -69,15 +68,14 @@ public class UserQueryServiceImpl implements UserQueryService{
     @Override
     public SignUpResponseDTO.SignUpDTO signup(SignUpRequestDTO.SignUpDTO dto) {
 
-        // User 조회
-        if (userQueryRepository.existsByEmail(dto.email())) {
-            throw new GeneralException(GeneralErrorCode.DUPLICATE_MEMBER);
+        // 먼저 이메일 인증 검증 (존재 여부 노출 방지)
+        try {
+            emailAuthCommandService.verifyCode(
+                    new EmailAuthRequestDTO.VerifyCodeDTO(dto.email(), dto.authCode())
+            );
+        } catch (EmailAuthException e) {
+            throw new EmailAuthException(EmailAuthErrorCode.DATA_NOT_FOUND);
         }
-
-        // 이메일 인증코드 검증
-        emailAuthCommandService.verifyCode(
-                new EmailAuthRequestDTO.VerifyCodeDTO(dto.email(), dto.authCode())
-        );
 
         String randomNickname = randomNicknameGenerator.generateUniqueNickname();
 
@@ -87,11 +85,12 @@ public class UserQueryServiceImpl implements UserQueryService{
                 .status(Status.ACTIVE)
                 .build();
 
-        // DB 적용
-        userRepository.save(user);
-
-        // 응답 DTO 생성
-        return UserConverter.toSignUpDTO(user);
+        try {
+            userRepository.save(user);
+            return UserConverter.toSignUpDTO(user);
+        } catch (DataIntegrityViolationException e) {
+            throw new GeneralException(GeneralErrorCode.DUPLICATE_MEMBER);
+        }
     }
 
 }
