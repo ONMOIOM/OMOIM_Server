@@ -9,6 +9,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Builder
 @Entity
 @AllArgsConstructor
@@ -43,6 +45,14 @@ public class User extends BaseEntity {
 
     @Column(name = "linkedin_id", length = 255)
     private String linkedinId;
+
+    @Column(name = "deleted_At")
+    private LocalDateTime deletedAt;
+
+    public void withdraw() {
+        this.status = Status.INACTIVE;
+        this.deletedAt = LocalDateTime.now();
+    }
 
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST, optional = true)
     @JoinColumn(name = "profile_image_id")
