@@ -18,7 +18,7 @@ public class Analytics {
 
     @Column(nullable=false)
     private LocalDate date;
-    
+
     @Column(nullable = false)
     private int clickCount;
 
@@ -32,4 +32,5 @@ public class Analytics {
     public void incrementClickCount() {
         this.clickCount += 1;
     }
+
 }
