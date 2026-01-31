@@ -114,6 +114,10 @@ public class UserQueryServiceImpl implements UserQueryService{
         User user = userRepository.findById(loginUser.getId())
                 .orElseThrow(() -> new GeneralException(GeneralErrorCode.MEMBER_NOT_FOUND));
 
+        if (user.getStatus() != Status.ACTIVE) {
+            throw new GeneralException(GeneralErrorCode.USER_INACTIVE);
+        }
+
         // 엔티티 메서드 호출 (null 자동 무시)
         user.updateProfile(
                 dto.getNickname(),
