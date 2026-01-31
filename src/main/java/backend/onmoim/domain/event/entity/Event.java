@@ -30,16 +30,16 @@ public class Event {
     @Column(name = "title", length = 50, nullable = true)
     private String title;
 
-    @Column(name = "startTime", nullable = true)
+    @Column(name = "start_time", nullable = true)
     private LocalDateTime startTime;
 
-    @Column(name = "endTime", nullable = true)
+    @Column(nullable = true)
     private LocalDateTime endTime;
 
-    @Column(name = "streetAddress", nullable = true, length = 255)
+    @Column(name = "street_address", nullable = true, length = 255)
     private String streetAddress;
 
-    @Column(name = "lotNumberAddress", nullable = true, length = 255)
+    @Column(name = "lot_number_address", nullable = true, length = 255)
     private String lotNumberAddress;
 
     @Column(name = "price", nullable = true)
@@ -48,16 +48,16 @@ public class Event {
     @Column(name = "introduction", nullable = true)
     private String introduction;
 
-    @Column(name = "status", nullable = true)
+    @Column(name = "status", nullable = true, length = 20)
     @Enumerated(EnumType.STRING)
     private Status status;
 
     @CreatedDate
-    @Column(name = "createdAt", nullable = true)
+    @Column(name = "created_at", nullable = true)
     private LocalDateTime createdAt;
 
     @LastModifiedDate
-    @Column(name = "updatedAt", nullable = true)
+    @Column(name = "updated_at", nullable = true)
     private LocalDateTime updatedAt;
 
 }
