@@ -40,8 +40,8 @@ public class AnalyticsController implements AnalyticsControllerDocs{
     @PostMapping("/{eventId}/sessions/{sessionId}")
     public ApiResponse<AnalyticsResDto.SessionEndResDto> sessionEnd(@ExistEvent @PathVariable Long eventId,@PathVariable String sessionId)
     {
-        analyticsCommendService.exitCount(eventId);
         analyticsCommendService.sessionExit(sessionId);
+        analyticsCommendService.exitCount(eventId);
 
         return ApiResponse.onSuccess(
                 AnalyticsSuccessCode.REQUEST_OK,
