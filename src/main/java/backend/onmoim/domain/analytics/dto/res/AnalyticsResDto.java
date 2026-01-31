@@ -7,5 +7,5 @@ public class AnalyticsResDto {
     public record SessionStartResDto(String sessionId){}
 
     @Builder
-    public record SessionEndResDto(String sessionId,long seconds){}
+    public record SessionEndResDto(String sessionId){}
 }

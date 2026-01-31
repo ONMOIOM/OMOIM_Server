@@ -38,14 +38,14 @@ public class AnalyticsController implements AnalyticsControllerDocs{
 
     @Override
     @PostMapping("/{eventId}/sessions/{sessionId}")
-    public ApiResponse<AnalyticsResDto.SessionStartResDto> sessionEnd(@ExistEvent @PathVariable Long eventId,@PathVariable String sessionId)
+    public ApiResponse<AnalyticsResDto.SessionEndResDto> sessionEnd(@ExistEvent @PathVariable Long eventId,@PathVariable String sessionId)
     {
         analyticsCommendService.exitCount(eventId);
-        analyticsCommendService.sessionExit(eventId,sessionId);
+        analyticsCommendService.sessionExit(sessionId);
 
         return ApiResponse.onSuccess(
                 AnalyticsSuccessCode.REQUEST_OK,
-                AnalyticsConverter.toSessionStartDTO(sessionId)
+                AnalyticsConverter.toSessionEndDTO(sessionId)
         );
     }
 }

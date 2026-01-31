@@ -13,11 +13,10 @@ public class AnalyticsConverter {
     }
 
     public static AnalyticsResDto.SessionEndResDto toSessionEndDTO(
-            String sessionId,Long seconds
+            String sessionId
     ){
         return AnalyticsResDto.SessionEndResDto.builder()
                 .sessionId(sessionId)
-                .seconds(seconds)
                 .build();
     }
 }

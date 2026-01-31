@@ -1,8 +1,6 @@
 package backend.onmoim.domain.analytics.service;
 
 import backend.onmoim.domain.analytics.code.AnalyticsErrorCode;
-import backend.onmoim.domain.analytics.converter.AnalyticsConverter;
-import backend.onmoim.domain.analytics.dto.res.AnalyticsResDto;
 import backend.onmoim.domain.analytics.repository.AnalyticsRespository;
 import backend.onmoim.global.common.exception.GeneralException;
 import backend.onmoim.global.common.session.RedisSessionTracker;
@@ -38,10 +36,12 @@ public class AnalyticsCommandService {
         }
     }
 
-    public AnalyticsResDto.SessionEndResDto sessionExit(Long eventId, String sessionId){
+    public void sessionExit(String sessionId){
 
         RedisSessionTracker.SessionData data=redisSessionTracker.exit(sessionId);
-
+        if(data==null){
+            throw new GeneralException(AnalyticsErrorCode.REDIS_NOT_FOUND);
+        }
         LocalDateTime enterTime = data.getEnterTime();
         LocalDateTime exitTime= LocalDateTime.now();
 
@@ -49,7 +49,5 @@ public class AnalyticsCommandService {
         long seconds = duration.getSeconds();
 
         analyticsRepository.updateAverageDuration(data.getEventId(),LocalDate.now(),seconds);
-
-        return AnalyticsConverter.toSessionEndDTO(sessionId,seconds);
     }
 }

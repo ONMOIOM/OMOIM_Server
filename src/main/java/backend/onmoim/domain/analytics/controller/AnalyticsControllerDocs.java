@@ -17,5 +17,5 @@ public interface AnalyticsControllerDocs {
     public ApiResponse<AnalyticsResDto.SessionStartResDto> sessionStart(@AuthenticationPrincipal User user,@ExistEvent @PathVariable Long eventId);
 
     @Operation(summary = "퇴장 시간 기록 및 머문 시간 계산", description = "머문 시간을 측정하고 click 수를 카운트 합니다 평균을 계산합니다")
-    public ApiResponse<AnalyticsResDto.SessionStartResDto> sessionEnd(@ExistEvent @PathVariable Long eventId,@PathVariable String sessionId);
+    public ApiResponse<AnalyticsResDto.SessionEndResDto> sessionEnd(@ExistEvent @PathVariable Long eventId,@PathVariable String sessionId);
 }

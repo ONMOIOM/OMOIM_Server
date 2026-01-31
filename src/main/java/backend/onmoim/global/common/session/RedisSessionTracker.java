@@ -56,7 +56,7 @@ public class RedisSessionTracker {
        try{
            SessionData data = objectMapper.readValue(json, SessionData.class);
            // Redis에서 삭제
-           redisTemplate.delete(sessionId);
+           redisTemplate.delete(key);
            return data;
        } catch (JsonProcessingException e) {
            throw new GeneralException(AnalyticsErrorCode.REDIS_DESERIALIZE_FAIL);
