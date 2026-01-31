@@ -8,17 +8,17 @@ import backend.onmoim.global.common.ApiResponse;
 import backend.onmoim.global.common.code.BaseSuccessCode;
 import backend.onmoim.global.common.code.GeneralErrorCode;
 import backend.onmoim.global.common.code.GeneralSuccessCode;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 import java.util.Objects;
 
+@RestController
+@RequiredArgsConstructor
 public class EventController {
 
-    private EventService eventService;
+    private final EventService eventService;
 
     @PostMapping("/events")
     public ApiResponse<EventResDTO> createDraft() {
