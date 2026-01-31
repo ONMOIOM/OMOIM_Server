@@ -32,4 +32,5 @@ public class Analytics {
     public void incrementClickCount() {
         this.clickCount += 1;
     }
+
 }
