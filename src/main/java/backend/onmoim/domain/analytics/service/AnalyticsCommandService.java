@@ -36,11 +36,14 @@ public class AnalyticsCommandService {
         }
     }
 
-    public void sessionExit(String sessionId){
+    public void sessionExit(String sessionId,Long eventId){
 
         RedisSessionTracker.SessionData data=redisSessionTracker.exit(sessionId);
         if(data==null){
             throw new GeneralException(AnalyticsErrorCode.REDIS_NOT_FOUND);
+        }
+        if(data.getEventId()!=eventId){
+            throw new GeneralException(AnalyticsErrorCode.BAD_EVENT_ID);
         }
         LocalDateTime enterTime = data.getEnterTime();
         LocalDateTime exitTime= LocalDateTime.now();
