@@ -2,6 +2,7 @@ package backend.onmoim.domain.user.controller;
 
 import backend.onmoim.domain.user.dto.req.LoginRequestDTO;
 import backend.onmoim.domain.user.dto.req.SignUpRequestDTO;
+import backend.onmoim.domain.user.dto.req.UserProfileUpdateDTO;
 import backend.onmoim.domain.user.dto.res.LoginResponseDTO;
 import backend.onmoim.domain.user.dto.res.SignUpResponseDTO;
 import backend.onmoim.domain.user.dto.res.UserProfileDTO;
@@ -54,5 +55,15 @@ public class UserController implements UserControllerDocs {
     ) {
         userCommandService.withdraw(user.getId());
         return ApiResponse.onSuccess(GeneralSuccessCode.REQUEST_OK,null);
+    }
+
+    @Override
+    @PatchMapping("")
+    public ApiResponse<UserProfileDTO> updateMyProfile(
+            @AuthenticationPrincipal User user,
+            @RequestBody @Valid UserProfileUpdateDTO dto) {
+
+        return ApiResponse.onSuccess(GeneralSuccessCode.REQUEST_OK,
+                userQueryService.updateMyProfile(user, dto));
     }
 }
