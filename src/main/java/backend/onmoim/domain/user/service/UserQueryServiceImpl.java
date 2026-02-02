@@ -11,7 +11,6 @@ import backend.onmoim.domain.user.dto.req.UserProfileUpdateDTO;
 import backend.onmoim.domain.user.dto.res.LoginResponseDTO;
 import backend.onmoim.domain.user.dto.res.SignUpResponseDTO;
 import backend.onmoim.domain.user.dto.res.UserProfileDTO;
-import backend.onmoim.domain.user.entity.ProfileImage;
 import backend.onmoim.domain.user.entity.User;
 import backend.onmoim.domain.user.enums.Status;
 import backend.onmoim.domain.user.repository.UserQueryRepository;
@@ -139,15 +138,15 @@ public class UserQueryServiceImpl implements UserQueryService{
     public String updateProfileImage(User user, MultipartFile image) {
         validateImage(image);
 
-        String imageurl = minioUtil.uploadProfileImage(image, user.getId());
+        try {
+            minioUtil.uploadProfileImage(image, user.getId());
 
-        ProfileImage newProfileImage = ProfileImage.builder()
-                .imageUrl(imageurl)
-                .build();
+            return minioUtil.getProfileImageUrl(user.getId());
 
-        user.updateProfileImage(newProfileImage);
+        } catch (Exception e) {
+            throw new GeneralException(GeneralErrorCode.IMAGE_UPLOAD_FAILED);
+        }
 
-        return minioUtil.getProfileImageUrl(user.getId());
     }
 
     private void validateImage(MultipartFile image) {

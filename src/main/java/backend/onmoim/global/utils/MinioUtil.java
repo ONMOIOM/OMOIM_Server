@@ -18,26 +18,20 @@ public class MinioUtil {
     @Value("${minio.bucket}")
     private String bucket;
 
-    public String uploadProfileImage(MultipartFile file, Long userId) {
+    public void uploadProfileImage(MultipartFile file, Long userId) {
         try {
-            String ext = getFileExtension(file.getOriginalFilename());
-            String filename = String.format("user/profile/%d%s", userId, ext);
+            ensureBucketExists();
 
-            deleteObjectIfExists(filename);
+            String filename = String.format("user/profile/%d/profile", userId); // 사용자마다 가상 폴더 생성
 
             PutObjectArgs putArgs = PutObjectArgs.builder()
                     .bucket(bucket)
                     .object(filename)
                     .contentType(file.getContentType())
-                    .stream(
-                            file.getInputStream(),
-                            file.getSize(),
-                            10 * 1024 * 1024 // 파일 크기 10MB 제한 (추후에 수정 가능)
-                    )
+                    .stream(file.getInputStream(), file.getSize(), 10 * 1024 * 1024)
                     .build();
 
             minioClient.putObject(putArgs);
-            return filename;
 
         } catch (Exception e) {
             throw new GeneralException(GeneralErrorCode.IMAGE_UPLOAD_FAILED);
@@ -46,7 +40,7 @@ public class MinioUtil {
 
     public String getProfileImageUrl(Long userId) {
         try {
-            String filename = String.format("user/profile/%d.png", userId);
+            String filename = String.format("user/profile/%d/profile", userId);
 
             return minioClient.getPresignedObjectUrl(
                     GetPresignedObjectUrlArgs.builder()
@@ -57,25 +51,15 @@ public class MinioUtil {
                             .build()
             );
         } catch (Exception e) {
-            // 파일 없으면 null 반환 (정상 로직)
-            return null;
+            return null;  // 파일 없음 (정상 로직)
         }
     }
 
-    private String getFileExtension(String originalFilename) {
-        if (originalFilename == null || !originalFilename.contains(".")) {
-            return ".png";
-        }
-        return originalFilename.substring(originalFilename.lastIndexOf("."));
-    }
-
-    private void deleteObjectIfExists(String objectKey) {
-        try {
-            minioClient.removeObject(
-                    RemoveObjectArgs.builder().bucket(bucket).object(objectKey).build()
-            );
-        } catch (Exception ignored) {
-            // 파일 없으면 무시 (정상 로직)
+    private void ensureBucketExists() throws Exception {
+        if (!minioClient.bucketExists(
+                BucketExistsArgs.builder().bucket(bucket).build())) {
+            minioClient.makeBucket(
+                    MakeBucketArgs.builder().bucket(bucket).build());
         }
     }
 
