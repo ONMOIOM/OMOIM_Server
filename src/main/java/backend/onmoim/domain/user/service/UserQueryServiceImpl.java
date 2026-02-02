@@ -167,9 +167,14 @@ public class UserQueryServiceImpl implements UserQueryService{
 
         // 파일 형식 검증
         String contentType = image.getContentType();
-        if (contentType == null || !contentType.startsWith("image/")) {
+        if (contentType == null || !isAllowedImageType(contentType)) {
             throw new GeneralException(GeneralErrorCode.INVALID_IMAGE_TYPE);
         }
     }
 
+    private boolean isAllowedImageType(String contentType) {
+        return contentType.equals("image/jpeg") ||
+                        contentType.equals("image/png") ||
+                        contentType.equals("image/gif");
+        }
 }
