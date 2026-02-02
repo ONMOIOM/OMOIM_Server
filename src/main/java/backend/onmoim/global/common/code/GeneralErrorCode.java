@@ -50,7 +50,19 @@ public enum GeneralErrorCode implements BaseErrorCode{
     DUPLICATE_MEMBER(
             HttpStatus.CONFLICT,
             "MEMBER_409",
-            "이미 존재하는 사용자입니다.");
+            "이미 존재하는 사용자입니다."),
+    INVALID_IMAGE(HttpStatus.BAD_REQUEST,
+            "IMAGE_400",
+            "이미지가 없습니다."),
+    IMAGE_SIZE_EXCEEDED(HttpStatus.BAD_REQUEST,
+            "IMAGE_401",
+            "이미지 크기가 10MB를 초과합니다."),
+    INVALID_IMAGE_TYPE(HttpStatus.BAD_REQUEST,
+            "IMAGE_402",
+            "지원하지 않는 이미지 형식입니다."),
+    IMAGE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR,
+            "IMAGE_500",
+            "이미지 업로드에 실패했습니다.");
 
 
     private final HttpStatus status;

@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface UserQueryService {
     LoginResponseDTO.LoginDTO login(@Valid LoginRequestDTO.LoginDTO dto, HttpServletResponse response);
@@ -24,4 +25,7 @@ public interface UserQueryService {
 
     @Transactional
     UserProfileDTO updateMyProfile(@AuthenticationPrincipal User loginUser, UserProfileUpdateDTO dto);
+
+    @Transactional
+    String updateProfileImage(User user, MultipartFile image);
 }

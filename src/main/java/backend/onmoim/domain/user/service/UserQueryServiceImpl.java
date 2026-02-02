@@ -18,15 +18,19 @@ import backend.onmoim.domain.user.repository.UserRepository;
 import backend.onmoim.global.common.code.GeneralErrorCode;
 import backend.onmoim.global.common.exception.GeneralException;
 import backend.onmoim.global.utils.JwtUtil;
+import backend.onmoim.global.utils.MinioUtil;
 import backend.onmoim.global.utils.RandomNicknameGenerator;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserQueryServiceImpl implements UserQueryService{
@@ -36,6 +40,7 @@ public class UserQueryServiceImpl implements UserQueryService{
     private final JwtUtil jwtUtil;
     private final RandomNicknameGenerator randomNicknameGenerator;
     private final EmailAuthCommandService emailAuthCommandService;
+    private final MinioUtil minioUtil;
 
     @Override
     public LoginResponseDTO.LoginDTO login(
@@ -129,4 +134,44 @@ public class UserQueryServiceImpl implements UserQueryService{
 
         return UserConverter.toProfileDTO(user);
     }
+
+    @Transactional
+    @Override
+    public String updateProfileImage(User user, MultipartFile image) {
+        validateImage(image);
+
+        try {
+            minioUtil.uploadProfileImage(image, user.getId());
+
+            return minioUtil.getProfileImageUrl(user.getId());
+
+        } catch (Exception e) {
+            log.error("이미지 업로드 실패: {}", e.getMessage(), e);
+            throw new GeneralException(GeneralErrorCode.IMAGE_UPLOAD_FAILED);
+        }
+
+    }
+
+    private void validateImage(MultipartFile image) {
+        if (image == null || image.isEmpty()) {
+            throw new GeneralException(GeneralErrorCode.INVALID_IMAGE);
+        }
+
+        long size = image.getSize();
+        if (size > 10 * 1024 * 1024) { // 10MB 제한
+            throw new GeneralException(GeneralErrorCode.IMAGE_SIZE_EXCEEDED);
+        }
+
+        // 파일 형식 검증
+        String contentType = image.getContentType();
+        if (contentType == null || !isAllowedImageType(contentType)) {
+            throw new GeneralException(GeneralErrorCode.INVALID_IMAGE_TYPE);
+        }
+    }
+
+    private boolean isAllowedImageType(String contentType) {
+        return contentType.equals("image/jpeg") ||
+                        contentType.equals("image/png") ||
+                        contentType.equals("image/gif");
+        }
 }

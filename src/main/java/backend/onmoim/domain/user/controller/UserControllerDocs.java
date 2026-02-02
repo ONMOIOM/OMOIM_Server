@@ -9,11 +9,14 @@ import backend.onmoim.domain.user.dto.res.UserProfileDTO;
 import backend.onmoim.domain.user.entity.User;
 import backend.onmoim.global.common.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
 @Tag(name = "사용자 API", description = "사용자 관련 API")
 public interface UserControllerDocs {
@@ -41,5 +44,14 @@ public interface UserControllerDocs {
     ApiResponse<UserProfileDTO> updateMyProfile(
             @AuthenticationPrincipal User user,
             @Valid @RequestBody UserProfileUpdateDTO dto
+    );
+
+    @Operation(summary = "프로필 이미지 변경",
+            description = "프로필 이미지만 변경합니다. 이미지 파일은 10MB 이하의 JPG, PNG, GIF만 지원합니다."
+    )
+    ApiResponse<String> updateProfileImage(
+            @AuthenticationPrincipal User user,
+            @Parameter(description = "업로드할 이미지 파일 (최대 10MB, 이미지 형식만)", required = true)
+            @RequestParam("image") MultipartFile image
     );
 }

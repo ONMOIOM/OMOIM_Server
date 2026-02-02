@@ -15,6 +15,10 @@ spring:
     properties:
       hibernate:
         format_sql: true # 출력되는 SQL 쿼리를 보기 좋게 포맷팅
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
 
 
   # 메일 발송 설정
@@ -60,3 +64,9 @@ jwt:
 logging:
   level:
     backend.onmoim.global.security.JwtAuthFilter: DEBUG
+
+minio:
+  url: ${MINIO_URL}
+  access-key: ${MINIO_ACCESS_KEY}
+  secret-key: ${MINIO_SECRET_KEY}
+  bucket: ${MINIO_BUCKET}
