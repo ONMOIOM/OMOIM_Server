@@ -13,7 +13,7 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 public class Event {
-
+    @Column(name = "event_id")
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
