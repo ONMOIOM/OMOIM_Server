@@ -23,12 +23,14 @@ import backend.onmoim.global.utils.RandomNicknameGenerator;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserQueryServiceImpl implements UserQueryService{
@@ -141,9 +143,13 @@ public class UserQueryServiceImpl implements UserQueryService{
         try {
             minioUtil.uploadProfileImage(image, user.getId());
 
-            return minioUtil.getProfileImageUrl(user.getId());
-
+            String imageUrl = minioUtil.getProfileImageUrl(user.getId());
+            if (imageUrl == null) {
+                    throw new GeneralException(GeneralErrorCode.IMAGE_UPLOAD_FAILED);
+                }
+            return imageUrl;
         } catch (Exception e) {
+            log.error("이미지 업로드 실패: {}", e.getMessage(), e);
             throw new GeneralException(GeneralErrorCode.IMAGE_UPLOAD_FAILED);
         }
 
