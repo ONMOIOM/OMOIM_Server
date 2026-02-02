@@ -51,7 +51,7 @@ public class MinioUtil {
                             .build()
             );
         } catch (Exception e) {
-            return null;  // 파일 없음 (정상 로직)
+            throw new GeneralException(GeneralErrorCode.INVALID_IMAGE);
         }
     }
 

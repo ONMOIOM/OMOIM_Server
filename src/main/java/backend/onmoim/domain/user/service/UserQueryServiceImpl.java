@@ -143,11 +143,8 @@ public class UserQueryServiceImpl implements UserQueryService{
         try {
             minioUtil.uploadProfileImage(image, user.getId());
 
-            String imageUrl = minioUtil.getProfileImageUrl(user.getId());
-            if (imageUrl == null) {
-                    throw new GeneralException(GeneralErrorCode.IMAGE_UPLOAD_FAILED);
-                }
-            return imageUrl;
+            return minioUtil.getProfileImageUrl(user.getId());
+
         } catch (Exception e) {
             log.error("이미지 업로드 실패: {}", e.getMessage(), e);
             throw new GeneralException(GeneralErrorCode.IMAGE_UPLOAD_FAILED);
