@@ -61,7 +61,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
     // MiniO
-    implementation 'io.minio:minio:8.5.10'
+    implementation 'io.minio:minio:8.6.0'
 
 }
 
