@@ -69,7 +69,7 @@ public class UserController implements UserControllerDocs {
                 userQueryService.updateMyProfile(user, dto));
     }
 
-    @PatchMapping(value = "/profile-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/profile-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<String> updateProfileImage(
             @AuthenticationPrincipal User user,
             @RequestParam("image") MultipartFile image
