@@ -11,6 +11,7 @@ import backend.onmoim.domain.user.dto.req.UserProfileUpdateDTO;
 import backend.onmoim.domain.user.dto.res.LoginResponseDTO;
 import backend.onmoim.domain.user.dto.res.SignUpResponseDTO;
 import backend.onmoim.domain.user.dto.res.UserProfileDTO;
+import backend.onmoim.domain.user.entity.ProfileImage;
 import backend.onmoim.domain.user.entity.User;
 import backend.onmoim.domain.user.enums.Status;
 import backend.onmoim.domain.user.repository.UserQueryRepository;
@@ -18,6 +19,7 @@ import backend.onmoim.domain.user.repository.UserRepository;
 import backend.onmoim.global.common.code.GeneralErrorCode;
 import backend.onmoim.global.common.exception.GeneralException;
 import backend.onmoim.global.utils.JwtUtil;
+import backend.onmoim.global.utils.MinioUtil;
 import backend.onmoim.global.utils.RandomNicknameGenerator;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -26,6 +28,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +39,7 @@ public class UserQueryServiceImpl implements UserQueryService{
     private final JwtUtil jwtUtil;
     private final RandomNicknameGenerator randomNicknameGenerator;
     private final EmailAuthCommandService emailAuthCommandService;
+    private final MinioUtil minioUtil;
 
     @Override
     public LoginResponseDTO.LoginDTO login(
@@ -129,4 +133,38 @@ public class UserQueryServiceImpl implements UserQueryService{
 
         return UserConverter.toProfileDTO(user);
     }
+
+    @Transactional
+    @Override
+    public String updateProfileImage(User user, MultipartFile image) {
+        validateImage(image);
+
+        String imageurl = minioUtil.uploadProfileImage(image, user.getId());
+
+        ProfileImage newProfileImage = ProfileImage.builder()
+                .imageUrl(imageurl)
+                .build();
+
+        user.updateProfileImage(newProfileImage);
+
+        return minioUtil.getProfileImageUrl(user.getId());
+    }
+
+    private void validateImage(MultipartFile image) {
+        if (image == null || image.isEmpty()) {
+            throw new GeneralException(GeneralErrorCode.INVALID_IMAGE);
+        }
+
+        long size = image.getSize();
+        if (size > 10 * 1024 * 1024) { // 10MB 제한
+            throw new GeneralException(GeneralErrorCode.IMAGE_SIZE_EXCEEDED);
+        }
+
+        // 파일 형식 검증
+        String contentType = image.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new GeneralException(GeneralErrorCode.INVALID_IMAGE_TYPE);
+        }
+    }
+
 }

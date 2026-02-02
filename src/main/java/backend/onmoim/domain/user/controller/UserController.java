@@ -14,8 +14,10 @@ import backend.onmoim.global.common.code.GeneralSuccessCode;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
@@ -66,4 +68,13 @@ public class UserController implements UserControllerDocs {
         return ApiResponse.onSuccess(GeneralSuccessCode.REQUEST_OK,
                 userQueryService.updateMyProfile(user, dto));
     }
+
+    @PatchMapping(value = "/profile-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ApiResponse<String> updateProfileImage(
+            @AuthenticationPrincipal User user,
+            @RequestParam("image") MultipartFile image
+    ) {
+        return ApiResponse.onSuccess(GeneralSuccessCode.REQUEST_OK, userQueryService.updateProfileImage(user, image));
+    }
+
 }

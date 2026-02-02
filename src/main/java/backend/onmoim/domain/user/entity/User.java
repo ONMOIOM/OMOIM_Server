@@ -81,4 +81,8 @@ public class User extends BaseEntity {
             this.linkedinId = linkedinId;
         }
     }
+
+    public void updateProfileImage(ProfileImage profileImage) {
+        this.profileImage = profileImage;
+    }
 }
