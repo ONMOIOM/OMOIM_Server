@@ -10,6 +10,7 @@ import backend.onmoim.global.common.session.RedisSessionTracker;
 
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -67,17 +68,18 @@ public class AnalyticsCommandService {
         List<Event> events = eventRepository.findAll();
 
         for(Event event : events){
-            if(analyticsRepository.existsByEventAndDate(event,today)){
-                continue;
-            }
-
             Analytics analytics = Analytics.builder().
                                     event(event).
                                     date(today).
                                     clickCount(0).
                                     avgSessionTimeSec(0).
                                     build();
-            analyticsRepository.save(analytics);
+
+            try {
+                analyticsRepository.save(analytics);
+            } catch (DataIntegrityViolationException e) {
+                // 이미 존재시 아무것도 안함
+            }
         }
     }
 
