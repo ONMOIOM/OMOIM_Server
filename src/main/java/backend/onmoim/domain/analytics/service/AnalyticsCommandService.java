@@ -75,7 +75,7 @@ public class AnalyticsCommandService {
         Duration duration = Duration.between(enterTime,exitTime);
         long seconds = duration.getSeconds();
 
-        analyticsRepository.updateAverageDuration(data.getEventId(),LocalDate.now(),seconds);
+        analyticsRepository.updateAverageDuration(data.getEventId(),LocalDate.now(ZoneId.of("Asia/Seoul")),seconds);
     }
 
     public void createDailyAnalyticsForAllEvents() {

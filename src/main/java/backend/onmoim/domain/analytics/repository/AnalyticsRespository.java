@@ -23,7 +23,7 @@ public interface AnalyticsRespository extends JpaRepository<Analytics,Long> {
 
     @Modifying
     @Query("UPDATE Analytics a " +
-            "SET a.avgSessionTimeSec = (a.avgSessionTimeSec * a.clickCount + :sessionTime) / a.clickCount " +
+            "SET a.avgSessionTimeSec = (a.avgSessionTimeSec * (a.clickCount - 1) + :sessionTime) / a.clickCount " +
             "WHERE a.event.id = :eventId AND a.date = :date")
     int updateAverageDuration(@Param("eventId") Long eventId,
                               @Param("date") LocalDate date,
