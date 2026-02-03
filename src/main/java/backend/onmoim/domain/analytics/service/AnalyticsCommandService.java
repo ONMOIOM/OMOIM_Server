@@ -41,7 +41,22 @@ public class AnalyticsCommandService {
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
         int updated = analyticsRepository.incrementClickCount(eventId, today);
         if (updated == 0) {
-            throw new GeneralException(BAD_EVENT_ID);
+
+            Event event = eventRepository.findById(eventId)
+                    .orElseThrow(() -> new GeneralException(BAD_EVENT_ID));
+
+            if (!analyticsRepository.existsByEventAndDate(event, today)) {
+                analyticsRepository.save(
+                        Analytics.builder()
+                                .event(event)
+                                .date(today)
+                                .clickCount(1)
+                                .avgSessionTimeSec(0)
+                                .build()
+                );
+            } else {
+                analyticsRepository.incrementClickCount(eventId, today);
+            }
         }
     }
 
