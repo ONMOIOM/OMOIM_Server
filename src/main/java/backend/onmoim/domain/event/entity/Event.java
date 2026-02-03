@@ -1,5 +1,8 @@
 package backend.onmoim.domain.event.entity;
+
 import backend.onmoim.domain.user.entity.User;
+import backend.onmoim.global.entity.BaseEntity;
+import backend.onmoim.domain.event.enums.EventStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -9,25 +12,41 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-public class Event {
+public class Event extends BaseEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "event_Id")
     private Long id;
 
+    @Column(length = 50)
     private String title;
 
-    private LocalDateTime eventDate;
+    @Column(name = "start_time")
+    private LocalDateTime startTime;
 
-    private String location;
+    @Column(name = "end_time")
+    private LocalDateTime endTime;
+
+    @Column(name = "street_address")
+    private String streetAddress;
+
+
+    @Column(name = "lot_number_address")
+    private String lotNumberAddress;
+
 
     private Integer price;
 
-    private String playlistUrl;
 
-    @Column(columnDefinition = "TEXT")
-    private String content;
+    @Column(name = "Introduction", columnDefinition = "TEXT")
+    private String introduction;
+
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "host_id")
+    @JoinColumn(name = "user_id")
     private User host;
+
+
+    @Enumerated(EnumType.STRING)
+    private EventStatus status;
 }
