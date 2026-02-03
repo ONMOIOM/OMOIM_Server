@@ -1,17 +1,18 @@
 package backend.onmoim.domain.analytics.service;
 
 import backend.onmoim.domain.analytics.code.AnalyticsErrorCode;
-import backend.onmoim.domain.analytics.entity.Analytics;
 import backend.onmoim.domain.analytics.repository.AnalyticsRespository;
 import backend.onmoim.global.common.exception.GeneralException;
 import backend.onmoim.global.common.session.RedisSessionTracker;
-import jakarta.persistence.OptimisticLockException;
+
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Transactional
 @Service
@@ -23,16 +24,33 @@ public class AnalyticsCommandService {
 
     public String sessionEnter(Long userId,Long eventId){
         String sessionId=redisSessionTracker.enter(userId,eventId);
-
         return sessionId;
     }
 
 
-    public void enterCount(Long eventId){
+    public void exitCount(Long eventId){
         LocalDate today = LocalDate.now();
         int updated = analyticsRepository.incrementClickCount(eventId, today);
         if (updated == 0) {
             throw new GeneralException(AnalyticsErrorCode.BAD_EVENT_ID);
         }
+    }
+
+    public void sessionExit(String sessionId,Long eventId){
+
+        RedisSessionTracker.SessionData data=redisSessionTracker.exit(sessionId);
+        if(data==null){
+            throw new GeneralException(AnalyticsErrorCode.REDIS_NOT_FOUND);
+        }
+        if(data.getEventId()!=eventId){
+            throw new GeneralException(AnalyticsErrorCode.BAD_EVENT_ID);
+        }
+        LocalDateTime enterTime = data.getEnterTime();
+        LocalDateTime exitTime= LocalDateTime.now();
+
+        Duration duration = Duration.between(enterTime,exitTime);
+        long seconds = duration.getSeconds();
+
+        analyticsRepository.updateAverageDuration(data.getEventId(),LocalDate.now(),seconds);
     }
 }

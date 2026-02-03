@@ -22,10 +22,9 @@ import java.time.LocalDateTime;
 @Table(name = "Event")
 @EntityListeners(AuditingEntityListener.class)
 public class Event {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long eventId;
+    @Column(name = "event_id")
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Column(name = "title", length = 50, nullable = true)
     private String title;

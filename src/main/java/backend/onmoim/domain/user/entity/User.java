@@ -57,4 +57,28 @@ public class User extends BaseEntity {
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST, optional = true)
     @JoinColumn(name = "profile_image_id")
     private ProfileImage profileImage;
+
+    // 회원 정보 수정
+    public void updateProfile(String nickname,
+                              String introduction,
+                              String instagramId,
+                              String twitterId,
+                              String linkedinId) {
+
+        if (nickname != null) {
+            this.nickname = nickname;
+        }
+        if (introduction != null) {
+            this.introduction = introduction;
+        }
+        if (instagramId != null) {
+            this.instagramId = instagramId;
+        }
+        if (twitterId != null) {
+            this.twitterId = twitterId;
+        }
+        if (linkedinId != null) {
+            this.linkedinId = linkedinId;
+        }
+    }
 }

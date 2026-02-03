@@ -68,6 +68,24 @@ jobs:
               -e DEV_DB_USER=${{ secrets.DEV_DB_USER }} \
               -e DEV_DB_PW=${{ secrets.DEV_DB_PW }} \
               -e DEV_URL=${{ secrets.DEV_URL }} \
+<<<<<<< HEAD
+=======
+              -e REDIS_HOST=${{ secrets.REDIS_HOST }} \
+              -e REDIS_PORT=${{ secrets.REDIS_PORT }} \
+              -e REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }} \
+              -e JWT_SECRET_KEY=${{secrets.JWT_SECRET_KEY}} \
+              -e JWT_TOKEN_EXPIRATION_ACCESS=3600000 \
+              -e JWT_TOKEN_EXPIRATION_REFRESH=604800000 \
+              -e MAIL_USERNAME_1=${{ secrets.MAIL_USERNAME_1 }} \
+              -e MAIL_PASSWORD_1=${{ secrets.MAIL_PASSWORD_1 }} \
+              -e MAIL_USERNAME_2=${{ secrets.MAIL_USERNAME_2 }} \
+              -e MAIL_PASSWORD_2=${{ secrets.MAIL_PASSWORD_2 }} \
+              -e TURNSTILE_SECRET_KEY=${{ secrets.TURNSTILE_SECRET_KEY }} \
+              -e MINIO_URL=${{ secrets.MINIO_URL }} \
+              -e MINIO_ACCESS_KEY=${{ secrets.MINIO_ACCESS_KEY }} \
+              -e MINIO_SECRET_KEY=${{ secrets.MINIO_SECRET_KEY }} \
+              -e MINIO_BUCKET=${{ secrets.MINIO_BUCKET }} \
+>>>>>>> eb917938538e2a857844f5ebfc0227aee36c38d8
               ${{ secrets.DOCKER_USERNAME }}/onmoim:develop
 
       - name: Send Discord Notification on Failure
