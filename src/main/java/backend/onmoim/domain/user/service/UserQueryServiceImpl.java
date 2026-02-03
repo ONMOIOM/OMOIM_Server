@@ -111,7 +111,12 @@ public class UserQueryServiceImpl implements UserQueryService{
         }
 
         UserProfileDTO dto = UserConverter.toProfileDTO(user);
-        String imageUrl = minioUtil.getProfileImageUrl(user.getId());
+        String imageUrl = null;
+        try {
+                imageUrl = minioUtil.getProfileImageUrl(user.getId());
+            } catch (Exception e) {
+                log.warn("프로필 이미지 URL 생성 실패: {}", e.getMessage(), e);
+            }
         dto.setProfileImageUrl(imageUrl);
 
         return dto;
