@@ -3,11 +3,12 @@ package backend.onmoim.domain.event.service;
 import backend.onmoim.domain.event.dto.req.VoteRequest;
 import backend.onmoim.domain.event.dto.res.EventDetailResponse;
 import backend.onmoim.domain.event.entity.Event;
-import backend.onmoim.domain.event.entity.Participation;
+import backend.onmoim.domain.event.entity.EventMember;
+import backend.onmoim.domain.event.exception.EventException;
+import backend.onmoim.domain.event.repository.EventMemberRepository;
 import backend.onmoim.domain.event.repository.EventRepository;
-import backend.onmoim.domain.event.repository.ParticipationRepository;
 import backend.onmoim.domain.user.entity.User;
-import backend.onmoim.domain.user.repository.UserRepository;
+import backend.onmoim.global.common.code.GeneralErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,19 +22,17 @@ import java.util.stream.Collectors;
 public class EventService {
 
     private final EventRepository eventRepository;
-    private final ParticipationRepository participationRepository;
-    private final UserRepository userRepository;
+    private final EventMemberRepository eventMemberRepository;
 
+    // 1. 행사 상세 조회
     public EventDetailResponse getEventDetail(Long eventId) {
         Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new IllegalArgumentException("행사를 찾을 수 없습니다."));
+                .orElseThrow(() -> new EventException(GeneralErrorCode.BAD_REQUEST));
 
-        List<Participation> allParticipations = participationRepository.findAllByEvent(event);
+        List<EventMember> allMembers = eventMemberRepository.findAllByEvent(event);
+        int totalCount = allMembers.size();
 
-        int totalCount = allParticipations.size();
-
-
-        List<EventDetailResponse.ParticipantDto> participantDtos = allParticipations.stream()
+        List<EventDetailResponse.ParticipantDto> participantDtos = allMembers.stream()
                 .limit(4)
                 .map(EventDetailResponse.ParticipantDto::from)
                 .collect(Collectors.toList());
@@ -41,40 +40,37 @@ public class EventService {
         return EventDetailResponse.of(event, participantDtos, totalCount);
     }
 
-
+    // 2. 투표하기
     @Transactional
-    public void castVote(Long eventId, Long userId, VoteRequest request) {
+    public void castVote(Long eventId, User user, VoteRequest request) {
         Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new IllegalArgumentException("행사를 찾을 수 없습니다."));
+                .orElseThrow(() -> new EventException(GeneralErrorCode.BAD_REQUEST));
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다."));
-
-        participationRepository.findByUserAndEvent(user, event)
+        eventMemberRepository.findByUserAndEvent(user, event)
                 .ifPresentOrElse(
-                        existingParticipation -> existingParticipation.updateStatus(request.getStatus()),
+                        existingMember -> existingMember.updateStatus(request.getStatus()),
                         () -> {
-                            Participation newParticipation = Participation.builder()
+                            EventMember newMember = EventMember.builder()
                                     .user(user)
                                     .event(event)
                                     .status(request.getStatus())
                                     .build();
-                            participationRepository.save(newParticipation);
+                            eventMemberRepository.save(newMember);
                         }
                 );
     }
-    @Transactional
-    public void deleteEvent(Long eventId, Long currentUserId) {
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new IllegalArgumentException("삭제할 행사를 찾을 수 없습니다."));
 
-        //기존 데이터에 host가 null이면 에러가 날 수 있다
-        if (event.getHost() == null || !event.getHost().getId().equals(currentUserId)) {
-            throw new IllegalArgumentException("행사를 삭제할 권한이 없습니다. (주최자만 삭제 가능)");
+    // 3. 행사 삭제
+    @Transactional
+    public void deleteEvent(Long eventId, User user) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new EventException(GeneralErrorCode.BAD_REQUEST));
+
+        if (!event.getHost().getId().equals(user.getId())) {
+            throw new EventException(GeneralErrorCode.UNAUTHORIZED);
         }
 
-        participationRepository.deleteAllByEvent(event);
-
+        eventMemberRepository.deleteAllByEvent(event);
         eventRepository.delete(event);
     }
 }

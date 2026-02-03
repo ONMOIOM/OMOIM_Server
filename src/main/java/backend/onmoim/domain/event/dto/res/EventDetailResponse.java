@@ -1,7 +1,8 @@
 package backend.onmoim.domain.event.dto.res;
 
 import backend.onmoim.domain.event.entity.Event;
-import backend.onmoim.domain.event.entity.Participation;
+import backend.onmoim.domain.event.entity.EventMember;
+import backend.onmoim.domain.event.enums.EventStatus;
 import backend.onmoim.domain.event.enums.VoteStatus;
 import lombok.Builder;
 import lombok.Getter;
@@ -12,42 +13,52 @@ import java.util.List;
 @Getter
 @Builder
 public class EventDetailResponse {
-    private Long eventId;
+
+    private Long event_Id;
     private String title;
-    private LocalDateTime eventDate;
-    private String location;
+    private LocalDateTime start_time;
+    private LocalDateTime end_time;
+    private String street_address;
+    private String lot_number_address;
     private Integer price;
-    private String playlistUrl;
-    private String content;
+    private String Introduction;
+    private EventStatus status;
+
+    // (ERD에는 없지만 응답에 필요한 정보들)
+    private String hostName;
     private List<ParticipantDto> participants;
-    private int totalParticipantCount;
+    private Integer totalParticipantCount;
+
+    public static EventDetailResponse of(Event event, List<ParticipantDto> participants, int totalCount) {
+        return EventDetailResponse.builder()
+                .event_Id(event.getId())
+                .title(event.getTitle())
+                .start_time(event.getStartTime())
+                .end_time(event.getEndTime())
+                .street_address(event.getStreetAddress())
+                .lot_number_address(event.getLotNumberAddress())
+                .price(event.getPrice())
+                .Introduction(event.getIntroduction())
+                .status(event.getStatus())
+                .hostName(event.getHost().getNickname())
+                .participants(participants)
+                .totalParticipantCount(totalCount)
+                .build();
+    }
 
     @Getter
     @Builder
     public static class ParticipantDto {
-        private String userName;
+        private Long userId;
+        private String nickname;
         private VoteStatus status;
 
-        public static ParticipantDto from(Participation participation) {
+        public static ParticipantDto from(EventMember eventMember) {
             return ParticipantDto.builder()
-                    .userName(participation.getUser().getNickname()) //User에 getNickName이라고 되어있음
-                    .status(participation.getStatus())
+                    .userId(eventMember.getUser().getId())
+                    .nickname(eventMember.getUser().getNickname())
+                    .status(eventMember.getStatus())
                     .build();
         }
-    }
-
-
-    public static EventDetailResponse of(Event event, List<ParticipantDto> participants, int totalCount) {
-        return EventDetailResponse.builder()
-                .eventId(event.getId())
-                .title(event.getTitle())
-                .eventDate(event.getEventDate())
-                .location(event.getLocation())
-                .price(event.getPrice())
-                .playlistUrl(event.getPlaylistUrl())
-                .content(event.getContent())
-                .participants(participants)
-                .totalParticipantCount(totalCount)
-                .build();
     }
 }
