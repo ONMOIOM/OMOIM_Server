@@ -16,7 +16,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
+
+import static backend.onmoim.domain.analytics.code.AnalyticsErrorCode.BAD_EVENT_ID;
 
 @Transactional
 @Service
@@ -34,10 +37,10 @@ public class AnalyticsCommandService {
 
 
     public void exitCount(Long eventId){
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
         int updated = analyticsRepository.incrementClickCount(eventId, today);
         if (updated == 0) {
-            throw new GeneralException(AnalyticsErrorCode.BAD_EVENT_ID);
+            throw new GeneralException(BAD_EVENT_ID);
         }
     }
 
@@ -48,10 +51,10 @@ public class AnalyticsCommandService {
             throw new GeneralException(AnalyticsErrorCode.REDIS_NOT_FOUND);
         }
         if (!data.getEventId().equals(eventId)) {
-            throw new GeneralException(AnalyticsErrorCode.BAD_EVENT_ID);
+            throw new GeneralException(BAD_EVENT_ID);
         }
         LocalDateTime enterTime = data.getEnterTime();
-        LocalDateTime exitTime= LocalDateTime.now();
+        LocalDateTime exitTime= LocalDateTime.now(ZoneId.of("Asia/Seoul"));
 
         Duration duration = Duration.between(enterTime,exitTime);
         long seconds = duration.getSeconds();
@@ -60,7 +63,7 @@ public class AnalyticsCommandService {
     }
 
     public void createDailyAnalyticsForAllEvents() {
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
         List<Event> events = eventRepository.findAll();
 
         for(Event event : events){
@@ -76,5 +79,22 @@ public class AnalyticsCommandService {
                                     build();
             analyticsRepository.save(analytics);
         }
+    }
+
+    public void createTodayAnalyticsTable(Event event){
+
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
+
+        if(event==null){
+            throw new GeneralException(BAD_EVENT_ID);
+        }
+
+        Analytics analytics = Analytics.builder().
+                event(event).
+                date(today).
+                clickCount(0).
+                avgSessionTimeSec(0).
+                build();
+        analyticsRepository.save(analytics);
     }
 }
