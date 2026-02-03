@@ -109,7 +109,12 @@ public class UserQueryServiceImpl implements UserQueryService{
         if (user.getStatus() != Status.ACTIVE) {
             throw new GeneralException(GeneralErrorCode.USER_INACTIVE);
         }
-        return UserConverter.toProfileDTO(user);
+
+        UserProfileDTO dto = UserConverter.toProfileDTO(user);
+        String imageUrl = minioUtil.getProfileImageUrl(user.getId());
+        dto.setProfileImageUrl(imageUrl);
+
+        return dto;
     }
 
     @Transactional
