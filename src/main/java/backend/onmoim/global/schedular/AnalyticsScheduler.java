@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 public class AnalyticsScheduler {
     private final AnalyticsCommandService analyticsCommandService;
 
-    @Scheduled(cron = "0 0 0 * * ?")
+    @Scheduled(cron = "0 0 0 * * ?",zone="Asia/Seoul")
     public void generateDailyAnalytics(){
         analyticsCommandService.createDailyAnalyticsForAllEvents();
     }

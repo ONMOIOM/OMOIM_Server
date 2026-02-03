@@ -47,7 +47,7 @@ public class AnalyticsCommandService {
         if(data==null){
             throw new GeneralException(AnalyticsErrorCode.REDIS_NOT_FOUND);
         }
-        if(data.getEventId()!=eventId){
+        if (!data.getEventId().equals(eventId)) {
             throw new GeneralException(AnalyticsErrorCode.BAD_EVENT_ID);
         }
         LocalDateTime enterTime = data.getEnterTime();
