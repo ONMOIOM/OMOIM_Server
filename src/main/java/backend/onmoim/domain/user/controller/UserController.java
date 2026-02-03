@@ -47,7 +47,7 @@ public class UserController implements UserControllerDocs {
     @GetMapping("")
     public ApiResponse<UserProfileDTO> getMyProfile(
             @AuthenticationPrincipal User user) {
-        return ApiResponse.onSuccess(GeneralSuccessCode.REQUEST_OK, userQueryService.getMyProfile(user));  // User 전달
+        return ApiResponse.onSuccess(GeneralSuccessCode.REQUEST_OK, userQueryService.getMyProfile(user));
     }
       
     @Override
