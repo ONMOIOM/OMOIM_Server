@@ -11,6 +11,15 @@ import java.time.LocalDate;
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access=AccessLevel.PROTECTED)
+@Table(
+        name = "analytics",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_event_date",
+                        columnNames = {"event_id", "date"}
+                )
+        }
+)
 public class Analytics {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,10 +35,11 @@ public class Analytics {
     private long avgSessionTimeSec;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "event_id")
+    @JoinColumn(name = "event_id",nullable = false)
     private Event event;
 
     public void incrementClickCount() {
         this.clickCount += 1;
     }
+
 }

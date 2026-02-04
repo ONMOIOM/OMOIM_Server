@@ -1,6 +1,7 @@
 package backend.onmoim.domain.analytics.repository;
 
 import backend.onmoim.domain.analytics.entity.Analytics;
+import backend.onmoim.domain.event.entity.Event;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -22,9 +23,11 @@ public interface AnalyticsRespository extends JpaRepository<Analytics,Long> {
 
     @Modifying
     @Query("UPDATE Analytics a " +
-            "SET a.avgSessionTimeSec = (a.avgSessionTimeSec * a.clickCount + :sessionTime) / a.clickCount " +
+            "SET a.avgSessionTimeSec = (a.avgSessionTimeSec * (a.clickCount - 1) + :sessionTime) / a.clickCount " +
             "WHERE a.event.id = :eventId AND a.date = :date")
     int updateAverageDuration(@Param("eventId") Long eventId,
                               @Param("date") LocalDate date,
                               @Param("sessionTime") long sessionTime);
+
+    boolean existsByEventAndDate(Event event, LocalDate date);
 }
