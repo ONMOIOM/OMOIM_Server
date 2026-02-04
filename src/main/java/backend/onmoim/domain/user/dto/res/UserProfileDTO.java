@@ -13,4 +13,5 @@ public class UserProfileDTO {
     private String instagramId;
     private String twitterId;
     private String linkedinId;
+    private String profileImageUrl;
 }
