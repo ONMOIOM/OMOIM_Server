@@ -5,9 +5,9 @@ import backend.onmoim.domain.event.dto.EventResDTO;
 import backend.onmoim.domain.event.entity.Event;
 import backend.onmoim.domain.event.enums.Status;
 import backend.onmoim.domain.event.repository.EventRepository;
-import lombok.Getter;
+import backend.onmoim.global.common.code.GeneralErrorCode;
+import backend.onmoim.global.common.exception.GeneralException;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,31 +32,46 @@ public class EventServiceImpl implements EventService {
     @Override
     @Transactional
     public EventResDTO patchEvent(Long eventId, Map<String, Object> updates) {
-        Event event = eventRepository.findById(eventId).orElseThrow();
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new GeneralException(GeneralErrorCode.BAD_REQUEST));
         if(updates.containsKey("title")){
             event.setTitle((String) updates.get("title"));
         }
+
         if(updates.containsKey("startTime")){
-            event.setStartTime((LocalDateTime) updates.get("startTime"));
+            Object startTimeValue = updates.get("startTime");
+            if (startTimeValue instanceof String) {
+                event.setStartTime(LocalDateTime.parse((String) startTimeValue));
+            } else if (startTimeValue instanceof LocalDateTime) {
+                event.setStartTime((LocalDateTime) startTimeValue);
+            }
         }
+
         if(updates.containsKey("endTime")){
-            event.setEndTime((LocalDateTime) updates.get("endTime"));
+            Object endTimeValue = updates.get("endTime");
+            if(endTimeValue instanceof String) {
+                event.setEndTime(LocalDateTime.parse((String) endTimeValue));
+            }else if (endTimeValue instanceof LocalDateTime) {
+                event.setEndTime((LocalDateTime) endTimeValue);
+            }
         }
+
         if(updates.containsKey("streetAddress")){
             event.setStreetAddress((String) updates.get("streetAddress"));
         }
+
         if(updates.containsKey("lotNumberAddress")){
             event.setLotNumberAddress((String) updates.get("lotNumberAddress"));
         }
+
         if(updates.containsKey("price")){
-            event.setPrice((int) updates.get("price"));
+            event.setPrice((Integer) updates.get("price"));
         }
-        if(updates.containsKey("price")){
-            event.setPrice((int) updates.get("price"));
-        }
+
         if(updates.containsKey("introduction")){
             event.setIntroduction((String) updates.get("introduction"));
         }
+
         return EventConverter.toResDTO(event);
     }
 

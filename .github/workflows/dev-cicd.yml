@@ -68,8 +68,6 @@ jobs:
               -e DEV_DB_USER=${{ secrets.DEV_DB_USER }} \
               -e DEV_DB_PW=${{ secrets.DEV_DB_PW }} \
               -e DEV_URL=${{ secrets.DEV_URL }} \
-<<<<<<< HEAD
-=======
               -e REDIS_HOST=${{ secrets.REDIS_HOST }} \
               -e REDIS_PORT=${{ secrets.REDIS_PORT }} \
               -e REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }} \
@@ -85,7 +83,6 @@ jobs:
               -e MINIO_ACCESS_KEY=${{ secrets.MINIO_ACCESS_KEY }} \
               -e MINIO_SECRET_KEY=${{ secrets.MINIO_SECRET_KEY }} \
               -e MINIO_BUCKET=${{ secrets.MINIO_BUCKET }} \
->>>>>>> eb917938538e2a857844f5ebfc0227aee36c38d8
               ${{ secrets.DOCKER_USERNAME }}/onmoim:develop
 
       - name: Send Discord Notification on Failure

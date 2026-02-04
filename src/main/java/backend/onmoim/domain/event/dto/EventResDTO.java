@@ -2,12 +2,7 @@ package backend.onmoim.domain.event.dto;
 
 
 import backend.onmoim.domain.event.enums.Status;
-import jakarta.persistence.Column;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import lombok.*;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.LocalDateTime;
 
@@ -22,7 +17,7 @@ public class EventResDTO {
     private LocalDateTime endTime;
     private String streetAddress;
     private String lotNumberAddress;
-    private int price;
+    private Integer price;
     private String introduction;
     private Status status;
 

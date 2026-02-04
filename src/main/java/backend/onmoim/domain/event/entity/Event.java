@@ -2,11 +2,8 @@ package backend.onmoim.domain.event.entity;
 
 import backend.onmoim.domain.event.enums.Status;
 import jakarta.persistence.Id;
-
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -15,8 +12,8 @@ import java.time.LocalDateTime;
 
 @Entity
 @Builder
-@Setter
 @Getter
+@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Table(name = "Event")
@@ -42,7 +39,7 @@ public class Event {
     private String lotNumberAddress;
 
     @Column(name = "price", nullable = true)
-    private int price;
+    private Integer price;
 
     @Column(name = "introduction", nullable = true)
     private String introduction;
@@ -51,12 +48,15 @@ public class Event {
     @Enumerated(EnumType.STRING)
     private Status status;
 
+    @Column(name = "playlist_url", nullable = true)
+    private  String playlistUrl;
+
     @CreatedDate
-    @Column(name = "created_at", nullable = true)
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
     @LastModifiedDate
-    @Column(name = "updated_at", nullable = true)
+    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
 }
