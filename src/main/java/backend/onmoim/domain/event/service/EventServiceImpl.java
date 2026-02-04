@@ -17,7 +17,7 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class EventServiceImpl implements EventService {
-    private  final EventRepository eventRepository;
+    private final EventRepository eventRepository;
 
     @Override
     public EventResDTO createDraftEvent() {
@@ -25,7 +25,7 @@ public class EventServiceImpl implements EventService {
                 .status(Status.DRAFTED)
                 .build();
 
-        Event saved =  eventRepository.save(eventEntity);
+        Event saved = eventRepository.save(eventEntity);
         return EventConverter.toResDTO(saved);
     }
 
@@ -78,7 +78,8 @@ public class EventServiceImpl implements EventService {
     @Override
     @Transactional
     public EventResDTO publishEvent(Long eventID) {
-        Event event = eventRepository.findById(eventID).orElseThrow();
+        Event event = eventRepository.findById(eventID)
+                .orElseThrow(() -> new GeneralException(GeneralErrorCode.BAD_REQUEST));
         event.setStatus(Status.PUBLISHED);
 
         return EventConverter.toResDTO(event);

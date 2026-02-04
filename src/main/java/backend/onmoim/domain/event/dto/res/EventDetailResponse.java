@@ -14,8 +14,6 @@ import java.util.List;
 public class EventDetailResponse {
     private Long eventId;
     private String title;
-//    private LocalDateTime eventDate;
-//    private String location;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private String introduction;
@@ -23,7 +21,6 @@ public class EventDetailResponse {
     private String lotNumberAddress;
     private Integer price;
     private String playlistUrl;
-    private String content;
     private List<ParticipantDto> participants;
     private int totalParticipantCount;
 
@@ -48,8 +45,6 @@ public class EventDetailResponse {
                 .title(event.getTitle())
                 .startTime(event.getStartTime())
                 .endTime(event.getEndTime())
-//                .eventDate(event.getEventDate())
-//                .location(event.getLocation())
                 .lotNumberAddress(event.getLotNumberAddress())
                 .streetAddress(event.getStreetAddress())
                 .price(event.getPrice())

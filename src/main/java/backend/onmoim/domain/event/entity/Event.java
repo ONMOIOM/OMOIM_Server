@@ -49,7 +49,7 @@ public class Event {
     private Status status;
 
     @Column(name = "playlist_url", nullable = true)
-    private  String playlistUrl;
+    private String playlistUrl;
 
     @CreatedDate
     @Column(name = "created_at", nullable = false)
