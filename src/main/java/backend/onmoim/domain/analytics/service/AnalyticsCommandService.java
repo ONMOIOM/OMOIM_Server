@@ -150,10 +150,14 @@ public class AnalyticsCommandService {
         LocalDate startDate = endDate.minusDays(6);
 
         List<Analytics> analyticsList = analyticsRepository.countWeeklyAnalytics(eventId, startDate, endDate);
-        int totalParticipants = participationRepository.countAttendedByEventId(eventId);
+        int realTimeParticipants = participationRepository.countAttendedByEventId(eventId);
 
         List<AnalyticsResDto.DailyAnalyticsDto> stats = analyticsList.stream()
-                .map(a -> AnalyticsConverter.toDailyDto(a, totalParticipants))
+                .map(a -> {
+                    // 오늘 데이터면 실시간 값을 쓰고, 과거 데이터면 DB에 저장된 값을 씀
+                    int pNum = a.getDate().equals(endDate) ? realTimeParticipants : a.getParticipantNum();
+                    return AnalyticsConverter.toDailyDto(a, pNum);
+                })
                 .collect(Collectors.toList());
 
         return new AnalyticsResDto.GetAnalyticsListDto(eventId, stats);
