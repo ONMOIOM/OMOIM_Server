@@ -9,6 +9,7 @@ import java.time.LocalDate;
 @Entity
 @Builder
 @Getter
+@Setter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access=AccessLevel.PROTECTED)
 @Table(
@@ -33,6 +34,9 @@ public class Analytics {
 
     @Column(nullable = false)
     private long avgSessionTimeSec;
+
+    @Column(nullable = false)
+    private int participantNum;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "event_id",nullable = false)
