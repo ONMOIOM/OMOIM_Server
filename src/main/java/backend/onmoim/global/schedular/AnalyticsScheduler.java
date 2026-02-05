@@ -15,4 +15,8 @@ public class AnalyticsScheduler {
     public void generateDailyAnalytics(){
         analyticsCommandService.createDailyAnalyticsForAllEvents();
     }
+
+
+    @Scheduled(cron = "55 59 23 * * ?",zone="Asia/Seoul")
+    public void storeParticipantNum() {analyticsCommandService.countTodayFinalParticipantNum();}
 }

@@ -1,10 +1,13 @@
 package backend.onmoim.domain.analytics.service;
 
 import backend.onmoim.domain.analytics.code.AnalyticsErrorCode;
+import backend.onmoim.domain.analytics.converter.AnalyticsConverter;
+import backend.onmoim.domain.analytics.dto.res.AnalyticsResDto;
 import backend.onmoim.domain.analytics.entity.Analytics;
 import backend.onmoim.domain.analytics.repository.AnalyticsRespository;
 import backend.onmoim.domain.event.entity.Event;
 import backend.onmoim.domain.event.repository.EventRepository;
+import backend.onmoim.domain.event.repository.ParticipationRepository;
 import backend.onmoim.global.common.exception.GeneralException;
 import backend.onmoim.global.common.session.RedisSessionTracker;
 
@@ -19,8 +22,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static backend.onmoim.domain.analytics.code.AnalyticsErrorCode.BAD_EVENT_ID;
+import static backend.onmoim.domain.analytics.code.AnalyticsErrorCode.NOT_HOST;
 
 @Transactional
 @Service
@@ -30,6 +35,7 @@ public class AnalyticsCommandService {
     private final RedisSessionTracker redisSessionTracker;
     private final AnalyticsRespository analyticsRepository;
     private final EventRepository eventRepository;
+    private final ParticipationRepository participationRepository;
 
     public String sessionEnter(Long userId,Long eventId){
         String sessionId=redisSessionTracker.enter(userId,eventId);
@@ -113,5 +119,43 @@ public class AnalyticsCommandService {
                 avgSessionTimeSec(0).
                 build();
         analyticsRepository.save(analytics);
+    }
+
+    public void countTodayFinalParticipantNum(){
+
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
+
+        List<Analytics> analyticsList = analyticsRepository.findAllByDate(today);
+
+        for (Analytics analytics : analyticsList) {
+            Long eventId = analytics.getEvent().getId();
+
+            int participantCount = participationRepository.countAttendedByEventId(eventId);
+
+            analytics.setParticipantNum(participantCount);
+            analyticsRepository.save(analytics);
+        }
+    }
+
+
+    public AnalyticsResDto.GetAnalyticsListDto analyticsGet(Long userId, Long eventId) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new GeneralException(BAD_EVENT_ID));
+
+        if (!event.getHost().getId().equals(userId)) {
+            throw new GeneralException(NOT_HOST);
+        }
+
+        LocalDate startDate = LocalDate.now(ZoneId.of("Asia/Seoul"));
+        LocalDate endDate = startDate.minusDays(6);
+
+        List<Analytics> analyticsList = analyticsRepository.countWeeklyAnalytics(eventId, startDate, endDate);
+        int totalParticipants = participationRepository.countAttendedByEventId(eventId);
+
+        List<AnalyticsResDto.DailyAnalyticsDto> stats = analyticsList.stream()
+                .map(a -> AnalyticsConverter.toDailyDto(a, totalParticipants))
+                .collect(Collectors.toList());
+
+        return new AnalyticsResDto.GetAnalyticsListDto(eventId, stats);
     }
 }
