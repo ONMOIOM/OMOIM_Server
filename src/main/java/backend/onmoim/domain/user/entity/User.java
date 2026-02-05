@@ -1,6 +1,7 @@
 package backend.onmoim.domain.user.entity;
 
 
+import backend.onmoim.domain.event.entity.Event;
 import backend.onmoim.domain.user.enums.Status;
 import backend.onmoim.global.entity.BaseEntity;
 import jakarta.persistence.*;
@@ -10,6 +11,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Builder
 @Entity
@@ -57,6 +60,10 @@ public class User extends BaseEntity {
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST, optional = true)
     @JoinColumn(name = "profile_image_id")
     private ProfileImage profileImage;
+
+    @OneToMany(mappedBy = "host")
+    private List<Event> events = new ArrayList<>();
+
 
     // 회원 정보 수정
     public void updateProfile(String nickname,

@@ -1,6 +1,7 @@
 package backend.onmoim.domain.event.entity;
 
 import backend.onmoim.domain.analytics.entity.Analytics;
+import backend.onmoim.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -32,4 +33,8 @@ public class Event {
 
     @OneToMany(mappedBy = "event")
     private List<Analytics> analytics = new ArrayList<>();
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "host_id")
+    private User host;
 }
