@@ -146,8 +146,8 @@ public class AnalyticsCommandService {
             throw new GeneralException(NOT_HOST);
         }
 
-        LocalDate startDate = LocalDate.now(ZoneId.of("Asia/Seoul"));
-        LocalDate endDate = startDate.minusDays(6);
+        LocalDate endDate = LocalDate.now(ZoneId.of("Asia/Seoul"));
+        LocalDate startDate = endDate.minusDays(6);
 
         List<Analytics> analyticsList = analyticsRepository.countWeeklyAnalytics(eventId, startDate, endDate);
         int totalParticipants = participationRepository.countAttendedByEventId(eventId);

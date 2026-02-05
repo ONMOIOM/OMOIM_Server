@@ -61,6 +61,7 @@ public class User extends BaseEntity {
     @JoinColumn(name = "profile_image_id")
     private ProfileImage profileImage;
 
+    @Builder.Default
     @OneToMany(mappedBy = "host")
     private List<Event> events = new ArrayList<>();
 
