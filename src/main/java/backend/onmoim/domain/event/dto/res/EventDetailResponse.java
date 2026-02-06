@@ -28,6 +28,7 @@ public class EventDetailResponse {
 
     public static EventDetailResponse from(Event event) {
         return EventDetailResponse.builder()
+                .user_id(event.getUser().getId())
                 .event_Id(event.getId())
                 .title(event.getTitle())
                 .start_time(event.getStartTime())

@@ -65,7 +65,7 @@ public class EventService {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new EventException(GeneralErrorCode.BAD_REQUEST));
 
-        if (!event.getHost().getId().equals(user.getId())) {
+        if (!event.getUser().getId().equals(user.getId())) {
             throw new EventException(GeneralErrorCode.UNAUTHORIZED);
         }
 

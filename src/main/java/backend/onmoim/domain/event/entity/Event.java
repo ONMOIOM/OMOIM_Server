@@ -47,7 +47,7 @@ public class Event extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
-    private User host;
+    private User user;
 
     @Enumerated(EnumType.STRING)
     private EventStatus status;

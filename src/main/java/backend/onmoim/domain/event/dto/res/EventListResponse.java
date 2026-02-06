@@ -26,15 +26,12 @@ public class EventListResponse {
     public static EventListResponse from(Event event) {
         return EventListResponse.builder()
                 .eventId(event.getId())
-                .status(event.getStatus().name())
+                .status(event.getStatus() != null ? event.getStatus().name() : null)
                 .title(event.getTitle())
-
-
                 .schedule(Schedule.builder()
                         .startDate(event.getStartTime())
                         .endDate(event.getEndTime())
                         .build())
-
 
                 .location(Location.builder()
                         .streetAddress(event.getStreetAddress())
@@ -45,7 +42,7 @@ public class EventListResponse {
                 .playlist(event.getPlaylistUrl())
                 .price(event.getPrice())
                 .information(event.getIntroduction())
-                .hostName(event.getHost().getNickname())
+                .hostName(event.getUser() != null ? event.getUser().getNickname() : null)
                 .createdAt(event.getCreatedAt())
                 .updatedAt(event.getUpdatedAt())
                 .build();
