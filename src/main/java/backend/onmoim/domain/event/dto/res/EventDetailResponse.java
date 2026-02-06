@@ -1,20 +1,19 @@
 package backend.onmoim.domain.event.dto.res;
 
 import backend.onmoim.domain.event.entity.Event;
-import backend.onmoim.domain.event.entity.EventMember;
 import backend.onmoim.domain.event.enums.EventStatus;
-import backend.onmoim.domain.event.enums.VoteStatus;
 import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Getter
 @Builder
 public class EventDetailResponse {
 
+
     private Long event_Id;
+    private Long user_id;
     private String title;
     private LocalDateTime start_time;
     private LocalDateTime end_time;
@@ -23,13 +22,11 @@ public class EventDetailResponse {
     private Integer price;
     private String Introduction;
     private EventStatus status;
+    private String playlist;
+    private Integer capacity;
 
-    // (ERD에는 없지만 응답에 필요한 정보들)
-    private String hostName;
-    private List<ParticipantDto> participants;
-    private Integer totalParticipantCount;
 
-    public static EventDetailResponse of(Event event, List<ParticipantDto> participants, int totalCount) {
+    public static EventDetailResponse from(Event event) {
         return EventDetailResponse.builder()
                 .event_Id(event.getId())
                 .title(event.getTitle())
@@ -40,25 +37,8 @@ public class EventDetailResponse {
                 .price(event.getPrice())
                 .Introduction(event.getIntroduction())
                 .status(event.getStatus())
-                .hostName(event.getHost().getNickname())
-                .participants(participants)
-                .totalParticipantCount(totalCount)
+                .playlist(event.getPlaylistUrl())
+                .capacity(event.getCapacity())
                 .build();
-    }
-
-    @Getter
-    @Builder
-    public static class ParticipantDto {
-        private Long userId;
-        private String nickname;
-        private VoteStatus status;
-
-        public static ParticipantDto from(EventMember eventMember) {
-            return ParticipantDto.builder()
-                    .userId(eventMember.getUser().getId())
-                    .nickname(eventMember.getUser().getNickname())
-                    .status(eventMember.getStatus())
-                    .build();
-        }
     }
 }

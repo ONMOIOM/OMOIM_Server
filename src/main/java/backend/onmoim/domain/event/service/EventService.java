@@ -2,6 +2,7 @@ package backend.onmoim.domain.event.service;
 
 import backend.onmoim.domain.event.dto.req.VoteRequest;
 import backend.onmoim.domain.event.dto.res.EventDetailResponse;
+import backend.onmoim.domain.event.dto.res.EventListResponse;
 import backend.onmoim.domain.event.entity.Event;
 import backend.onmoim.domain.event.entity.EventMember;
 import backend.onmoim.domain.event.exception.EventException;
@@ -24,23 +25,21 @@ public class EventService {
     private final EventRepository eventRepository;
     private final EventMemberRepository eventMemberRepository;
 
-    // 1. 행사 상세 조회
+    // 1. 행사 목록 전체 조회
+    public List<EventListResponse> getEventList() {
+        return eventRepository.findAll().stream()
+                .map(EventListResponse::from)
+                .collect(Collectors.toList());
+    }
+
+    // 2. 행사 상세 조회
     public EventDetailResponse getEventDetail(Long eventId) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new EventException(GeneralErrorCode.BAD_REQUEST));
-
-        List<EventMember> allMembers = eventMemberRepository.findAllByEvent(event);
-        int totalCount = allMembers.size();
-
-        List<EventDetailResponse.ParticipantDto> participantDtos = allMembers.stream()
-                .limit(4)
-                .map(EventDetailResponse.ParticipantDto::from)
-                .collect(Collectors.toList());
-
-        return EventDetailResponse.of(event, participantDtos, totalCount);
+        return EventDetailResponse.from(event);
     }
 
-    // 2. 투표하기
+    // 3. 투표하기
     @Transactional
     public void castVote(Long eventId, User user, VoteRequest request) {
         Event event = eventRepository.findById(eventId)
@@ -60,7 +59,7 @@ public class EventService {
                 );
     }
 
-    // 3. 행사 삭제
+    // 4. 행사 삭제
     @Transactional
     public void deleteEvent(Long eventId, User user) {
         Event event = eventRepository.findById(eventId)
