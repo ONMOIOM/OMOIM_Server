@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -30,4 +31,11 @@ public interface AnalyticsRespository extends JpaRepository<Analytics,Long> {
                               @Param("sessionTime") long sessionTime);
 
     boolean existsByEventAndDate(Event event, LocalDate date);
+
+    @Query("SELECT a FROM Analytics a WHERE a.event.id = :eventId AND :startDate <= a.date AND a.date<= :endDate ORDER BY a.date ASC")
+    List<Analytics> countWeeklyAnalytics(@Param("eventId") Long eventId,
+                                         @Param("startDate") LocalDate startDate,
+                                         @Param("endDate") LocalDate endDate);
+
+    List<Analytics> findAllByDate(LocalDate date);
 }
