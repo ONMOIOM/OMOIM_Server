@@ -11,6 +11,7 @@ import backend.onmoim.global.common.ApiResponse;
 import backend.onmoim.global.common.code.GeneralSuccessCode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -29,7 +30,7 @@ public class CommentController { // PascalCase 클래스 네이밍 준수
     public ApiResponse<CommentResponseDTO.CommentResultDTO> createComment(
             @PathVariable(name = "eventId") Long eventId,
             @AuthenticationPrincipal User user,
-            @RequestBody CommentRequestDTO.CreateCommentDTO request) {
+            @Valid @RequestBody CommentRequestDTO.CreateCommentDTO request) {
 
         Comment comment = commentCommandService.createComment(eventId, user, request);
 

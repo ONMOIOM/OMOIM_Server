@@ -24,7 +24,7 @@ public class CommentCommandServiceImpl implements CommentCommandService {
     @Override
     public Comment createComment(Long eventId, User user, CommentRequestDTO.CreateCommentDTO request) {
         Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new CommentException(CommentErrorCode.COMMENT_NOT_FOUND)); // 이벤트 존재 확인
+                .orElseThrow(() -> new CommentException(CommentErrorCode.EVENT_NOT_FOUND)); // 이벤트 존재 확인
 
         Comment comment = CommentConverter.toComment(request.content(), user, event);
         return commentRepository.save(comment);
