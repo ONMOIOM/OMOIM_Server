@@ -1,6 +1,7 @@
 package backend.onmoim.domain.comment.dto.response;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class CommentResponseDTO {
     public record CommentResultDTO(
@@ -10,4 +11,12 @@ public class CommentResponseDTO {
             String content,       // 내용
             LocalDateTime createdAt // 작성일자
     ) {}
+
+    public record CommentCursorListDTO(
+            Long eventId,
+            List<CommentResultDTO> commentList,
+            Long nextCursor,
+            Boolean hasNext
+    ) {}
+
 }

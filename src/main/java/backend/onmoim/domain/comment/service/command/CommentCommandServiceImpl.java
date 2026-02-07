@@ -35,11 +35,10 @@ public class CommentCommandServiceImpl implements CommentCommandService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new CommentException(CommentErrorCode.COMMENT_NOT_FOUND));
 
-        // 작성자 본인 확인 절차
+        // 작성자 본인 확인
         if (!comment.getUser().getId().equals(user.getId())) {
             throw new CommentException(CommentErrorCode.NOT_COMMENT_OWNER);
         }
-
         commentRepository.delete(comment);
     }
 }

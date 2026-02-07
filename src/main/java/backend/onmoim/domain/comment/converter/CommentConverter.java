@@ -4,6 +4,10 @@ import backend.onmoim.domain.comment.dto.response.CommentResponseDTO;
 import backend.onmoim.domain.comment.entity.Comment;
 import backend.onmoim.domain.event.entity.Event;
 import backend.onmoim.domain.user.entity.User;
+import org.springframework.data.domain.Slice;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class CommentConverter {
     public static Comment toComment(String content, User user, Event event) {
@@ -27,4 +31,18 @@ public class CommentConverter {
                 comment.getCreatedAt()
         );
     }
+
+    public static CommentResponseDTO.CommentCursorListDTO toCommentCursorListDTO(Long eventId, Slice<Comment> commentSlice, Long nextCursor) {
+        List<CommentResponseDTO.CommentResultDTO> commentResultDTOList = commentSlice.getContent().stream()
+                .map(CommentConverter::toCommentResultDTO)
+                .collect(Collectors.toList());
+
+        return new CommentResponseDTO.CommentCursorListDTO(
+                eventId,                // 매핑됨
+                commentResultDTOList,
+                nextCursor,
+                commentSlice.hasNext()
+        );
+    }
+
 }
