@@ -2,6 +2,7 @@ package backend.onmoim.domain.event.entity;
 
 import backend.onmoim.domain.analytics.entity.Analytics;
 import backend.onmoim.domain.user.entity.User;
+import backend.onmoim.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -13,7 +14,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-public class Event {
+public class Event extends BaseEntity {
     @Column(name = "event_id")
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
