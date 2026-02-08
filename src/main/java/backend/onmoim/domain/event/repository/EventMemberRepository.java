@@ -4,6 +4,8 @@ import backend.onmoim.domain.event.entity.Event;
 import backend.onmoim.domain.event.entity.EventMember;
 import backend.onmoim.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -15,4 +17,7 @@ public interface EventMemberRepository extends JpaRepository<EventMember, Long> 
     List<EventMember> findAllByEvent(Event event);
 
     void deleteAllByEvent(Event event);
+
+    @Query("SELECT COUNT(em) FROM EventMember em WHERE em.event.id = :eventId")
+    int countAttendedByEventId(@Param("eventId") Long eventId);
 }

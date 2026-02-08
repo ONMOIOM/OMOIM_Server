@@ -7,7 +7,7 @@ import backend.onmoim.domain.analytics.entity.Analytics;
 import backend.onmoim.domain.analytics.repository.AnalyticsRespository;
 import backend.onmoim.domain.event.entity.Event;
 import backend.onmoim.domain.event.repository.EventRepository;
-import backend.onmoim.domain.event.repository.ParticipationRepository;
+import backend.onmoim.domain.event.repository.EventMemberRepository;
 import backend.onmoim.global.common.exception.GeneralException;
 import backend.onmoim.global.common.session.RedisSessionTracker;
 
@@ -35,7 +35,7 @@ public class AnalyticsCommandService {
     private final RedisSessionTracker redisSessionTracker;
     private final AnalyticsRespository analyticsRepository;
     private final EventRepository eventRepository;
-    private final ParticipationRepository participationRepository;
+    private final EventMemberRepository eventMemberRepository;
 
     public String sessionEnter(Long userId,Long eventId){
         String sessionId=redisSessionTracker.enter(userId,eventId);
@@ -130,7 +130,7 @@ public class AnalyticsCommandService {
         for (Analytics analytics : analyticsList) {
             Long eventId = analytics.getEvent().getId();
 
-            int participantCount = participationRepository.countAttendedByEventId(eventId);
+            int participantCount = eventMemberRepository.countAttendedByEventId(eventId);
 
             analytics.setParticipantNum(participantCount);
             analyticsRepository.save(analytics);
@@ -150,11 +150,10 @@ public class AnalyticsCommandService {
         LocalDate startDate = endDate.minusDays(6);
 
         List<Analytics> analyticsList = analyticsRepository.countWeeklyAnalytics(eventId, startDate, endDate);
-        int realTimeParticipants = participationRepository.countAttendedByEventId(eventId);
+        int realTimeParticipants = eventMemberRepository.countAttendedByEventId(eventId);
 
         List<AnalyticsResDto.DailyAnalyticsDto> stats = analyticsList.stream()
                 .map(a -> {
-                    // 오늘 데이터면 실시간 값을 쓰고, 과거 데이터면 DB에 저장된 값을 씀
                     int pNum = a.getDate().equals(endDate) ? realTimeParticipants : a.getParticipantNum();
                     return AnalyticsConverter.toDailyDto(a, pNum);
                 })
