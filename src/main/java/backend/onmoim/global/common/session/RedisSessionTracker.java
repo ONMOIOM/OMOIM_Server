@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.UUID;
 
 
@@ -34,7 +35,7 @@ public class RedisSessionTracker {
 
    public String enter(Long userId,Long eventId){
        String sessionId = UUID.randomUUID().toString();
-       SessionData data = new SessionData(userId,eventId,LocalDateTime.now());
+       SessionData data = new SessionData(userId,eventId,LocalDateTime.now(ZoneId.of("Asia/Seoul")));
 
        try {
            String json = objectMapper.writeValueAsString(data);

@@ -42,7 +42,7 @@ public class EventListResponse {
                 .playlist(event.getPlaylistUrl())
                 .price(event.getPrice())
                 .information(event.getIntroduction())
-                .hostName(event.getUser() != null ? event.getUser().getNickname() : null)
+                .hostName(event.getHost() != null ? event.getHost().getNickname() : null)
                 .createdAt(event.getCreatedAt())
                 .updatedAt(event.getUpdatedAt())
                 .build();

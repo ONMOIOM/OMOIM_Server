@@ -3,6 +3,8 @@ package backend.onmoim.domain.event.controller;
 import backend.onmoim.domain.event.dto.req.VoteRequest;
 import backend.onmoim.domain.event.dto.res.EventDetailResponse;
 import backend.onmoim.domain.event.dto.res.EventListResponse;
+import backend.onmoim.domain.event.dto.res.EventResDTO;
+import backend.onmoim.domain.event.dto.res.EventUpdateDTO;
 import backend.onmoim.domain.event.service.EventService;
 import backend.onmoim.domain.user.entity.User;
 import backend.onmoim.global.common.ApiResponse;
@@ -15,27 +17,43 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/events")
+@RequestMapping("/api/v1/users")
 public class EventController {
 
     private final EventService eventService;
 
-    // 1. 행사 목록 전체 조회 (중첩 객체 DTO 반환)
-    @GetMapping
-    public ApiResponse<List<EventListResponse>> getEventList() {
-        List<EventListResponse> responses = eventService.getEventList();
+    @PostMapping("/events")
+    public ApiResponse<EventResDTO> createDraft() {
+        EventResDTO eventResDTO = eventService.createDraftEvent();
+        return ApiResponse.onSuccess(GeneralSuccessCode.REQUEST_OK, eventResDTO);
+    }
+
+    @PatchMapping("/events/{eventId}")
+    public ApiResponse<EventResDTO> patchEvent
+            (@PathVariable Long eventId, @RequestBody EventUpdateDTO updates){
+        EventResDTO eventResDTO = eventService.patchEvent(eventId, updates);
+        return ApiResponse.onSuccess(GeneralSuccessCode.REQUEST_OK, eventResDTO);
+    }
+
+    @PostMapping("/events/{eventId}/published")
+    public ApiResponse<EventResDTO> publishEvent(@PathVariable Long eventId){
+        EventResDTO eventResDTO = eventService.publishEvent(eventId);
+        return ApiResponse.onSuccess(GeneralSuccessCode.REQUEST_OK, eventResDTO);
+    }
+
+    @GetMapping("/events")
+    public ApiResponse<List<EventListResponse>> getEvents() {
+        List<EventListResponse> responses = eventService.getEvents();
         return ApiResponse.onSuccess(GeneralSuccessCode.REQUEST_OK, responses);
     }
 
-    // 2. 행사 상세 조회
-    @GetMapping("/{eventId}")
+    @GetMapping("/events/{eventId}")
     public ApiResponse<EventDetailResponse> getEventDetail(@PathVariable Long eventId) {
         EventDetailResponse response = eventService.getEventDetail(eventId);
         return ApiResponse.onSuccess(GeneralSuccessCode.REQUEST_OK, response);
     }
 
-    // 3. 투표하기
-    @PostMapping("/{eventId}/vote")
+    @PostMapping("/events/{eventId}/vote")
     public ApiResponse<String> castVote(@PathVariable Long eventId,
                                         @AuthenticationPrincipal User user,
                                         @RequestBody VoteRequest request) {
@@ -43,11 +61,10 @@ public class EventController {
         return ApiResponse.onSuccess(GeneralSuccessCode.REQUEST_OK, "투표가 완료되었습니다.");
     }
 
-    // 4. 행사 삭제
-    @DeleteMapping("/{eventId}")
-    public ApiResponse<String> deleteEvent(@PathVariable Long eventId,
-                                           @AuthenticationPrincipal User user) {
+    @DeleteMapping("/events/{eventId}")
+    public ApiResponse<Void> deleteEvent(@PathVariable Long eventId,
+                                         @AuthenticationPrincipal User user) {
         eventService.deleteEvent(eventId, user);
-        return ApiResponse.onSuccess(GeneralSuccessCode.REQUEST_OK, "행사가 삭제되었습니다.");
+        return ApiResponse.onSuccess(GeneralSuccessCode.REQUEST_OK, null);
     }
 }

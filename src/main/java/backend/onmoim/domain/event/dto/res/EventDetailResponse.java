@@ -2,6 +2,7 @@ package backend.onmoim.domain.event.dto.res;
 
 import backend.onmoim.domain.event.entity.Event;
 import backend.onmoim.domain.event.enums.EventStatus;
+import backend.onmoim.domain.event.enums.Status;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -11,34 +12,30 @@ import java.time.LocalDateTime;
 @Builder
 public class EventDetailResponse {
 
-
-    private Long event_Id;
-    private Long user_id;
+    private Long eventId;
     private String title;
-    private LocalDateTime start_time;
-    private LocalDateTime end_time;
-    private String street_address;
-    private String lot_number_address;
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
+    private String introduction;
+    private String streetAddress;
+    private String lotNumberAddress;
     private Integer price;
-    private String Introduction;
-    private EventStatus status;
-    private String playlist;
+    private String playlistUrl;
     private Integer capacity;
-
+    private Status status;
 
     public static EventDetailResponse from(Event event) {
         return EventDetailResponse.builder()
-                .user_id(event.getUser().getId())
-                .event_Id(event.getId())
+                .eventId(event.getId())
                 .title(event.getTitle())
-                .start_time(event.getStartTime())
-                .end_time(event.getEndTime())
-                .street_address(event.getStreetAddress())
-                .lot_number_address(event.getLotNumberAddress())
+                .startTime(event.getStartTime())
+                .endTime(event.getEndTime())
+                .lotNumberAddress(event.getLotNumberAddress())
+                .streetAddress(event.getStreetAddress())
                 .price(event.getPrice())
-                .Introduction(event.getIntroduction())
+                .introduction(event.getIntroduction())
                 .status(event.getStatus())
-                .playlist(event.getPlaylistUrl())
+                .playlistUrl(event.getPlaylistUrl())
                 .capacity(event.getCapacity())
                 .build();
     }
