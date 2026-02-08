@@ -5,6 +5,7 @@ import backend.onmoim.domain.event.dto.res.EventDetailResponse;
 import backend.onmoim.domain.event.dto.res.EventListResponse;
 import backend.onmoim.domain.event.dto.res.EventResDTO;
 import backend.onmoim.domain.event.dto.res.EventUpdateDTO;
+import backend.onmoim.domain.event.dto.res.ParticipantDto;
 import backend.onmoim.domain.event.service.EventService;
 import backend.onmoim.domain.user.entity.User;
 import backend.onmoim.global.common.ApiResponse;
@@ -53,12 +54,19 @@ public class EventController {
         return ApiResponse.onSuccess(GeneralSuccessCode.REQUEST_OK, response);
     }
 
-    @PostMapping("/events/{eventId}/vote")
+    @PostMapping("/events/{eventId}/participants/{userId}")
     public ApiResponse<String> castVote(@PathVariable Long eventId,
+                                        @PathVariable Long userId,
                                         @AuthenticationPrincipal User user,
                                         @RequestBody VoteRequest request) {
         eventService.castVote(eventId, user, request);
         return ApiResponse.onSuccess(GeneralSuccessCode.REQUEST_OK, "투표가 완료되었습니다.");
+    }
+
+    @GetMapping("/events/{eventId}/participants")
+    public ApiResponse<List<ParticipantDto>> getParticipants(@PathVariable Long eventId) {
+        List<ParticipantDto> participants = eventService.getParticipants(eventId);
+        return ApiResponse.onSuccess(GeneralSuccessCode.REQUEST_OK, participants);
     }
 
     @DeleteMapping("/events/{eventId}")
