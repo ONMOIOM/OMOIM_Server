@@ -6,6 +6,7 @@ import backend.onmoim.domain.event.dto.res.EventListResponse;
 import backend.onmoim.domain.event.dto.res.EventResDTO;
 import backend.onmoim.domain.event.dto.res.EventUpdateDTO;
 import backend.onmoim.domain.user.entity.User;
+import backend.onmoim.domain.event.dto.res.ParticipantDto;
 
 import java.util.List;
 
@@ -20,4 +21,5 @@ public interface EventService {
     void castVote(Long eventId, User user, VoteRequest request);
 
     List<EventResDTO> getUserParticipatingEvents(Long userId);
+    List<ParticipantDto> getParticipants(Long eventId);
 }

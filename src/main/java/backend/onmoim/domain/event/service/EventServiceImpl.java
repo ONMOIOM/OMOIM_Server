@@ -19,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import backend.onmoim.domain.analytics.service.AnalyticsCommandService;
+import backend.onmoim.domain.event.dto.res.ParticipantDto;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -129,6 +130,16 @@ public class EventServiceImpl implements EventService {
         List<Event> events = eventMemberRepository.findEventByUserId(userId);
         return  events.stream()
                 .map(EventConverter::toResDTO)
+                .collect(Collectors.toList());
+    }
+    @Override
+    @Transactional(readOnly = true)
+    public List<ParticipantDto> getParticipants(Long eventId) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new GeneralException(GeneralErrorCode.EVENT_NOT_FOUND));
+
+        return eventMemberRepository.findAllByEvent(event).stream()
+                .map(ParticipantDto::from)
                 .collect(Collectors.toList());
     }
 
