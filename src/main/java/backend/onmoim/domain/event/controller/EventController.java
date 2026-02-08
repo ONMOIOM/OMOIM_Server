@@ -68,8 +68,8 @@ public class EventController {
         return ApiResponse.onSuccess(GeneralSuccessCode.REQUEST_OK, null);
     }
 
-    @GetMapping("{userID}/events")
-    public ApiResponse<List<EventResDTO>> getUserEvents(@PathVariable Long userId) {
+    @GetMapping("/{userId}/events")
+    public ApiResponse<List<EventResDTO>> getUserEvents(@AuthenticationPrincipal Long userId) {
         List<EventResDTO> events = eventService.getUserParticipatingEvents(userId);
         return ApiResponse.onSuccess(GeneralSuccessCode.REQUEST_OK, events);
     }

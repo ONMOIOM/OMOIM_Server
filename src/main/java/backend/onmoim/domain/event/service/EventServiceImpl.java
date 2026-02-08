@@ -126,9 +126,6 @@ public class EventServiceImpl implements EventService {
     @Override
     @Transactional(readOnly = true)
     public List<EventResDTO> getUserParticipatingEvents(Long userId){
-        userRepository.findById(userId)
-                .orElseThrow(() -> new GeneralException(GeneralErrorCode.MEMBER_NOT_FOUND));
-
         List<Event> events = eventMemberRepository.findEventByUserId(userId);
         return  events.stream()
                 .map(EventConverter::toResDTO)
