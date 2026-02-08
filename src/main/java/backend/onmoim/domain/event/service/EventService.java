@@ -18,4 +18,6 @@ public interface EventService {
     List<EventListResponse> getEvents();
     void deleteEvent(Long eventId, User user);
     void castVote(Long eventId, User user, VoteRequest request);
+
+    List<EventResDTO> getUserParticipatingEvents(Long userId);
 }

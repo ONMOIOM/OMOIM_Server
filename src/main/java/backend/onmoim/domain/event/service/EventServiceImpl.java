@@ -12,11 +12,13 @@ import backend.onmoim.domain.event.enums.Status;
 import backend.onmoim.domain.event.repository.EventMemberRepository;
 import backend.onmoim.domain.event.repository.EventRepository;
 import backend.onmoim.domain.user.entity.User;
+import backend.onmoim.domain.user.repository.UserRepository;
 import backend.onmoim.global.common.code.GeneralErrorCode;
 import backend.onmoim.global.common.exception.GeneralException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import backend.onmoim.domain.analytics.service.AnalyticsCommandService;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,6 +29,8 @@ public class EventServiceImpl implements EventService {
 
     private final EventRepository eventRepository;
     private final EventMemberRepository eventMemberRepository;
+    private final UserRepository userRepository;
+    private final AnalyticsCommandService analyticsCommandService;
 
     @Override
     public EventResDTO createDraftEvent() {
@@ -65,10 +69,10 @@ public class EventServiceImpl implements EventService {
     public EventResDTO publishEvent(Long eventID) {
         Event event = eventRepository.findById(eventID)
                 .orElseThrow(() -> new GeneralException(GeneralErrorCode.EVENT_NOT_FOUND));
-
         Event publishedEvent = event.publish();
         Event saved = eventRepository.save(publishedEvent);
 
+        analyticsCommandService.createTodayAnalyticsTable(saved);
         return EventConverter.toResDTO(saved);
     }
 
@@ -118,4 +122,17 @@ public class EventServiceImpl implements EventService {
                         }
                 );
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<EventResDTO> getUserParticipatingEvents(Long userId){
+        userRepository.findById(userId)
+                .orElseThrow(() -> new GeneralException(GeneralErrorCode.MEMBER_NOT_FOUND));
+
+        List<Event> events = eventMemberRepository.findEventByUserId(userId);
+        return  events.stream()
+                .map(EventConverter::toResDTO)
+                .collect(Collectors.toList());
+    }
+
 }

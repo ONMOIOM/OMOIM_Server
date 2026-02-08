@@ -20,4 +20,7 @@ public interface EventMemberRepository extends JpaRepository<EventMember, Long> 
 
     @Query("SELECT COUNT(em) FROM EventMember em WHERE em.event.id = :eventId")
     int countAttendedByEventId(@Param("eventId") Long eventId);
+
+    @Query("SELECT em.event FROM EventMember em WHERE em.user.id = :userId AND em.status = 'ATTEND'")
+    List<Event> findEventByUserId(@Param("userId") Long userId);
 }

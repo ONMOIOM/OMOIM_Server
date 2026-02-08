@@ -67,4 +67,10 @@ public class EventController {
         eventService.deleteEvent(eventId, user);
         return ApiResponse.onSuccess(GeneralSuccessCode.REQUEST_OK, null);
     }
+
+    @GetMapping("{userID}/events")
+    public ApiResponse<List<EventResDTO>> getUserEvents(@PathVariable Long userId) {
+        List<EventResDTO> events = eventService.getUserParticipatingEvents(userId);
+        return ApiResponse.onSuccess(GeneralSuccessCode.REQUEST_OK, events);
+    }
 }
