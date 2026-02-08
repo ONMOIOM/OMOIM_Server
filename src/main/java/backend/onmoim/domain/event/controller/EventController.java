@@ -1,13 +1,19 @@
 package backend.onmoim.domain.event.controller;
 
+import backend.onmoim.domain.event.dto.req.VoteRequest;
+import backend.onmoim.domain.event.dto.res.EventDetailResponse;
+import backend.onmoim.domain.event.dto.res.EventListResponse;
 import backend.onmoim.domain.event.dto.res.EventResDTO;
 import backend.onmoim.domain.event.dto.res.EventUpdateDTO;
 import backend.onmoim.domain.event.service.EventService;
+import backend.onmoim.domain.user.entity.User;
 import backend.onmoim.global.common.ApiResponse;
 import backend.onmoim.global.common.code.GeneralSuccessCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -24,7 +30,7 @@ public class EventController {
 
     @PatchMapping("/events/{eventId}")
     public ApiResponse<EventResDTO> patchEvent
-        (@PathVariable Long eventId, @RequestBody EventUpdateDTO updates){
+            (@PathVariable Long eventId, @RequestBody EventUpdateDTO updates){
         EventResDTO eventResDTO = eventService.patchEvent(eventId, updates);
         return ApiResponse.onSuccess(GeneralSuccessCode.REQUEST_OK, eventResDTO);
     }
@@ -33,5 +39,32 @@ public class EventController {
     public ApiResponse<EventResDTO> publishEvent(@PathVariable Long eventId){
         EventResDTO eventResDTO = eventService.publishEvent(eventId);
         return ApiResponse.onSuccess(GeneralSuccessCode.REQUEST_OK, eventResDTO);
+    }
+
+    @GetMapping("/events")
+    public ApiResponse<List<EventListResponse>> getEvents() {
+        List<EventListResponse> responses = eventService.getEvents();
+        return ApiResponse.onSuccess(GeneralSuccessCode.REQUEST_OK, responses);
+    }
+
+    @GetMapping("/events/{eventId}")
+    public ApiResponse<EventDetailResponse> getEventDetail(@PathVariable Long eventId) {
+        EventDetailResponse response = eventService.getEventDetail(eventId);
+        return ApiResponse.onSuccess(GeneralSuccessCode.REQUEST_OK, response);
+    }
+
+    @PostMapping("/events/{eventId}/vote")
+    public ApiResponse<String> castVote(@PathVariable Long eventId,
+                                        @AuthenticationPrincipal User user,
+                                        @RequestBody VoteRequest request) {
+        eventService.castVote(eventId, user, request);
+        return ApiResponse.onSuccess(GeneralSuccessCode.REQUEST_OK, "투표가 완료되었습니다.");
+    }
+
+    @DeleteMapping("/events/{eventId}")
+    public ApiResponse<Void> deleteEvent(@PathVariable Long eventId,
+                                         @AuthenticationPrincipal User user) {
+        eventService.deleteEvent(eventId, user);
+        return ApiResponse.onSuccess(GeneralSuccessCode.REQUEST_OK, null);
     }
 }

@@ -1,22 +1,32 @@
 package backend.onmoim.domain.event.service;
 
 import backend.onmoim.domain.event.converter.EventConverter;
+import backend.onmoim.domain.event.dto.req.VoteRequest;
+import backend.onmoim.domain.event.dto.res.EventDetailResponse;
+import backend.onmoim.domain.event.dto.res.EventListResponse;
 import backend.onmoim.domain.event.dto.res.EventResDTO;
 import backend.onmoim.domain.event.dto.res.EventUpdateDTO;
 import backend.onmoim.domain.event.entity.Event;
+import backend.onmoim.domain.event.entity.EventMember;
 import backend.onmoim.domain.event.enums.Status;
+import backend.onmoim.domain.event.repository.EventMemberRepository;
 import backend.onmoim.domain.event.repository.EventRepository;
+import backend.onmoim.domain.user.entity.User;
 import backend.onmoim.global.common.code.GeneralErrorCode;
 import backend.onmoim.global.common.exception.GeneralException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class EventServiceImpl implements EventService {
+
     private final EventRepository eventRepository;
+    private final EventMemberRepository eventMemberRepository;
 
     @Override
     public EventResDTO createDraftEvent() {
@@ -34,7 +44,7 @@ public class EventServiceImpl implements EventService {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new GeneralException(GeneralErrorCode.EVENT_NOT_FOUND));
 
-        Event updatedEvent = event.update(
+        event.update(
                 updateDTO.getTitle(),
                 updateDTO.getStartTime(),
                 updateDTO.getEndTime(),
@@ -46,7 +56,7 @@ public class EventServiceImpl implements EventService {
                 updateDTO.getIntroduction()
         );
 
-        Event saved = eventRepository.save(updatedEvent);
+        Event saved = eventRepository.save(event);
         return EventConverter.toResDTO(saved);
     }
 
@@ -55,9 +65,57 @@ public class EventServiceImpl implements EventService {
     public EventResDTO publishEvent(Long eventID) {
         Event event = eventRepository.findById(eventID)
                 .orElseThrow(() -> new GeneralException(GeneralErrorCode.EVENT_NOT_FOUND));
+
         Event publishedEvent = event.publish();
         Event saved = eventRepository.save(publishedEvent);
 
         return EventConverter.toResDTO(saved);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public EventDetailResponse getEventDetail(Long eventId) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new GeneralException(GeneralErrorCode.EVENT_NOT_FOUND));
+        return EventDetailResponse.from(event);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<EventListResponse> getEvents() {
+        return eventRepository.findAll().stream()
+                .map(EventListResponse::from)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public void deleteEvent(Long eventId, User user) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new GeneralException(GeneralErrorCode.EVENT_NOT_FOUND));
+        if (!event.getHost().getId().equals(user.getId())) {
+            throw new GeneralException(GeneralErrorCode.BAD_REQUEST);
+        }
+        eventRepository.delete(event);
+    }
+
+    @Override
+    @Transactional
+    public void castVote(Long eventId, User user, VoteRequest request) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new GeneralException(GeneralErrorCode.EVENT_NOT_FOUND));
+
+        eventMemberRepository.findByUserAndEvent(user, event)
+                .ifPresentOrElse(
+                        existingMember -> existingMember.updateStatus(request.getStatus()),
+                        () -> {
+                            EventMember newMember = EventMember.builder()
+                                    .user(user)
+                                    .event(event)
+                                    .status(request.getStatus())
+                                    .build();
+                            eventMemberRepository.save(newMember);
+                        }
+                );
     }
 }
