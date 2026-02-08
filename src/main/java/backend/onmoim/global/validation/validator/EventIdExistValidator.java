@@ -17,6 +17,10 @@ public class EventIdExistValidator implements ConstraintValidator<ExistEvent,Lon
 
     @Override
     public boolean isValid(Long values, ConstraintValidatorContext context) {
+        if(values==null){
+            return true;
+        }
+
 
         boolean isValid = eventRepository.existsById(values);
 
