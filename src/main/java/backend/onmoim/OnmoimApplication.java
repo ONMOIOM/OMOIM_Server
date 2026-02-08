@@ -6,8 +6,8 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 @SpringBootApplication
-@EnableJpaAuditing
 @ConfigurationPropertiesScan
+@EnableJpaAuditing
 public class OnmoimApplication {
 
 	public static void main(String[] args) {

@@ -14,11 +14,13 @@ import java.util.List;
 public class EventDetailResponse {
     private Long eventId;
     private String title;
-    private LocalDateTime eventDate;
-    private String location;
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
+    private String introduction;
+    private String streetAddress;
+    private String lotNumberAddress;
     private Integer price;
     private String playlistUrl;
-    private String content;
     private List<ParticipantDto> participants;
     private int totalParticipantCount;
 
@@ -41,11 +43,13 @@ public class EventDetailResponse {
         return EventDetailResponse.builder()
                 .eventId(event.getId())
                 .title(event.getTitle())
-                .eventDate(event.getEventDate())
-                .location(event.getLocation())
+                .startTime(event.getStartTime())
+                .endTime(event.getEndTime())
+                .lotNumberAddress(event.getLotNumberAddress())
+                .streetAddress(event.getStreetAddress())
                 .price(event.getPrice())
                 .playlistUrl(event.getPlaylistUrl())
-                .content(event.getContent())
+                .introduction(event.getIntroduction())
                 .participants(participants)
                 .totalParticipantCount(totalCount)
                 .build();
