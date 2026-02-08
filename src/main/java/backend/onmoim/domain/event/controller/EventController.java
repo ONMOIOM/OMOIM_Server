@@ -1,13 +1,13 @@
 package backend.onmoim.domain.event.controller;
 
-import backend.onmoim.domain.event.dto.EventResDTO;
+import backend.onmoim.domain.event.dto.res.EventResDTO;
+import backend.onmoim.domain.event.dto.res.EventUpdateDTO;
 import backend.onmoim.domain.event.service.EventService;
 import backend.onmoim.global.common.ApiResponse;
 import backend.onmoim.global.common.code.GeneralSuccessCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -24,7 +24,7 @@ public class EventController {
 
     @PatchMapping("/events/{eventId}")
     public ApiResponse<EventResDTO> patchEvent
-        (@PathVariable Long eventId, @RequestBody Map <String, Object> updates){
+        (@PathVariable Long eventId, @RequestBody EventUpdateDTO updates){
         EventResDTO eventResDTO = eventService.patchEvent(eventId, updates);
         return ApiResponse.onSuccess(GeneralSuccessCode.REQUEST_OK, eventResDTO);
     }

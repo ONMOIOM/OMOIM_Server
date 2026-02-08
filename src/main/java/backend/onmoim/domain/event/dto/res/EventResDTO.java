@@ -1,4 +1,4 @@
-package backend.onmoim.domain.event.dto;
+package backend.onmoim.domain.event.dto.res;
 
 
 import backend.onmoim.domain.event.enums.Status;
@@ -18,6 +18,8 @@ public class EventResDTO {
     private String streetAddress;
     private String lotNumberAddress;
     private Integer price;
+    private String playlistUrl;
+    private Integer capacity;
     private String introduction;
     private Status status;
 

@@ -1,7 +1,8 @@
 package backend.onmoim.domain.event.service;
 
 import backend.onmoim.domain.event.converter.EventConverter;
-import backend.onmoim.domain.event.dto.EventResDTO;
+import backend.onmoim.domain.event.dto.res.EventResDTO;
+import backend.onmoim.domain.event.dto.res.EventUpdateDTO;
 import backend.onmoim.domain.event.entity.Event;
 import backend.onmoim.domain.event.enums.Status;
 import backend.onmoim.domain.event.repository.EventRepository;
@@ -11,8 +12,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -31,57 +30,34 @@ public class EventServiceImpl implements EventService {
 
     @Override
     @Transactional
-    public EventResDTO patchEvent(Long eventId, Map<String, Object> updates) {
+    public EventResDTO patchEvent(Long eventId, EventUpdateDTO updateDTO) {
         Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new GeneralException(GeneralErrorCode.BAD_REQUEST));
-        if(updates.containsKey("title")){
-            event.setTitle((String) updates.get("title"));
-        }
+                .orElseThrow(() -> new GeneralException(GeneralErrorCode.EVENT_NOT_FOUND));
 
-        if(updates.containsKey("startTime")){
-            Object startTimeValue = updates.get("startTime");
-            if (startTimeValue instanceof String) {
-                event.setStartTime(LocalDateTime.parse((String) startTimeValue));
-            } else if (startTimeValue instanceof LocalDateTime) {
-                event.setStartTime((LocalDateTime) startTimeValue);
-            }
-        }
+        Event updatedEvent = event.update(
+                updateDTO.getTitle(),
+                updateDTO.getStartTime(),
+                updateDTO.getEndTime(),
+                updateDTO.getStreetAddress(),
+                updateDTO.getLotNumberAddress(),
+                updateDTO.getPrice(),
+                updateDTO.getPlaylistUrl(),
+                updateDTO.getCapacity(),
+                updateDTO.getIntroduction()
+        );
 
-        if(updates.containsKey("endTime")){
-            Object endTimeValue = updates.get("endTime");
-            if(endTimeValue instanceof String) {
-                event.setEndTime(LocalDateTime.parse((String) endTimeValue));
-            }else if (endTimeValue instanceof LocalDateTime) {
-                event.setEndTime((LocalDateTime) endTimeValue);
-            }
-        }
-
-        if(updates.containsKey("streetAddress")){
-            event.setStreetAddress((String) updates.get("streetAddress"));
-        }
-
-        if(updates.containsKey("lotNumberAddress")){
-            event.setLotNumberAddress((String) updates.get("lotNumberAddress"));
-        }
-
-        if(updates.containsKey("price")){
-            event.setPrice((Integer) updates.get("price"));
-        }
-
-        if(updates.containsKey("introduction")){
-            event.setIntroduction((String) updates.get("introduction"));
-        }
-
-        return EventConverter.toResDTO(event);
+        Event saved = eventRepository.save(updatedEvent);
+        return EventConverter.toResDTO(saved);
     }
 
     @Override
     @Transactional
     public EventResDTO publishEvent(Long eventID) {
         Event event = eventRepository.findById(eventID)
-                .orElseThrow(() -> new GeneralException(GeneralErrorCode.BAD_REQUEST));
-        event.setStatus(Status.PUBLISHED);
+                .orElseThrow(() -> new GeneralException(GeneralErrorCode.EVENT_NOT_FOUND));
+        Event publishedEvent = event.publish();
+        Event saved = eventRepository.save(publishedEvent);
 
-        return EventConverter.toResDTO(event);
+        return EventConverter.toResDTO(saved);
     }
 }

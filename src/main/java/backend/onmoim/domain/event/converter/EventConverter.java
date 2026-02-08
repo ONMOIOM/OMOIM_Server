@@ -1,6 +1,6 @@
 package backend.onmoim.domain.event.converter;
 
-import backend.onmoim.domain.event.dto.EventResDTO;
+import backend.onmoim.domain.event.dto.res.EventResDTO;
 import backend.onmoim.domain.event.entity.Event;
 
 public class EventConverter {
